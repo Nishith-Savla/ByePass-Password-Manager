@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.password_manager">
+    package="com.byepass.passwordmanager">
    <application
         android:label="password_manager"
         android:icon="@mipmap/ic_launcher">
