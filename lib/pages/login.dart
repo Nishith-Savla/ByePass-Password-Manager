@@ -44,15 +44,15 @@ class _LoginState extends State<Login> {
                 autofillHints: const [AutofillHints.password],
                 maxLength: 40,
               ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text(
-                  'Login',
-                  style: TextStyle(
-                    fontSize: 15.0,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 15.0,
+                    ),
                   ),
                 ),
               )
