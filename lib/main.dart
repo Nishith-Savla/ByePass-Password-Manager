@@ -20,6 +20,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: const Login(),
     theme: ThemeData(
       primarySwatch: purpleMaterialColor,
