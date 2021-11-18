@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../utils.dart';
+import 'package:password_manager/components/rounded_button.dart';
+import 'package:password_manager/components/rounded_textfield.dart';
+import 'package:password_manager/utils.dart' show emailRegex;
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -12,7 +13,7 @@ class Login extends StatefulWidget {
 extension Validator on String {
   bool isValidEmail() => RegExp(emailRegex).hasMatch(this);
 
-  String? validatePassword() {
+  String validatePassword() {
     final _errorMessage = StringBuffer();
 
     if (length < 8) {
@@ -33,14 +34,18 @@ extension Validator on String {
 
     return _errorMessage.toString().isNotEmpty
         ? 'Password must contain:\n' + _errorMessage.toString()
-        : null;
+        : '';
   }
 }
 
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   String _email = "";
   String _password = "";
+  String _emailErrorMessage = "";
+  String _passwordErrorMessage = "";
   bool _isPasswordVisible = true;
 
   bool _validate() {
@@ -64,57 +69,71 @@ class _LoginState extends State<Login> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              RoundedTextField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  hintText: 'Enter your email',
-                  suffixIcon: Icon(Icons.mail_outline_outlined),
-                ),
+                focusNode: _emailFocusNode,
+                labelText: 'Email Address',
+                hintText: 'Enter your email',
+                suffixIcon: IconButton(
+                    icon: const Icon(Icons.email_outlined),
+                    onPressed: () => _emailFocusNode.requestFocus()),
                 keyboardType: TextInputType.emailAddress,
                 autofocus: true,
                 autofillHints: const [AutofillHints.email],
                 maxLength: 50,
-                validator: (email) => email!.isValidEmail()
-                    ? null
-                    : "Please enter a valid email address",
+                validator: (email) {
+                  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                    setState(() => _emailErrorMessage = email!.isValidEmail()
+                        ? ""
+                        : "Please enter a valid email address");
+                  });
+                },
                 onSaved: (email) => _email = email!,
               ),
-              TextFormField(
+              Text(_emailErrorMessage),
+              RoundedTextField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                focusNode: _passwordFocusNode,
                 obscureText: _isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
-                  suffixIcon: IconButton(
-                      onPressed: () => setState(
-                          () => _isPasswordVisible = !_isPasswordVisible),
-                      icon: Icon(_isPasswordVisible
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined)),
-                ),
+                labelText: 'Password',
+                hintText: 'Enter your password',
+                suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() => _isPasswordVisible = !_isPasswordVisible);
+                      _passwordFocusNode.requestFocus();
+                    },
+                    icon: Icon(_isPasswordVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined)),
                 keyboardType: TextInputType.visiblePassword,
                 autofillHints: const [AutofillHints.password],
                 maxLength: 40,
-                validator: (password) => password!.validatePassword(),
+                validator: (password) {
+                  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                    setState(() =>
+                        _passwordErrorMessage = password!.validatePassword());
+                  });
+                },
                 onSaved: (password) => _password = password!,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: ElevatedButton(
-                  onPressed: () => _validate(),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 15.0,
-                    ),
-                  ),
-                ),
-              )
+              Text(_passwordErrorMessage),
+              RoundedButton(
+                text: "LOGIN",
+                onPressed: () => _validate(),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up the focus node when the Form is disposed.
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+
+    super.dispose();
   }
 }
