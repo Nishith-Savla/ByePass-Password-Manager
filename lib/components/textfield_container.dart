@@ -1,3 +1,4 @@
+import 'package:password_manager/utils.dart';
 import 'package:flutter/material.dart';
 
 class TextFieldContainer extends StatelessWidget {
@@ -12,8 +13,12 @@ class TextFieldContainer extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
       width: size.width * 0.9,
+      decoration: BoxDecoration(
+        color: purpleMaterialColor[100],
+        borderRadius: BorderRadius.circular(29),
+      ),
       child: child,
     );
   }

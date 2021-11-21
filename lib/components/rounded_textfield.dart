@@ -1,8 +1,8 @@
+import 'package:password_manager/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:password_manager/components/textfield_container.dart';
-import 'package:password_manager/utils.dart';
 
-class RoundedTextField extends StatelessWidget {
+class RoundedTextFormField extends StatelessWidget {
   final Color? color;
   final String? labelText;
   final String? hintText;
@@ -20,7 +20,7 @@ class RoundedTextField extends StatelessWidget {
   final bool obscureText;
   final FocusNode? focusNode;
 
-  const RoundedTextField({
+  const RoundedTextFormField({
     Key? key,
     this.labelText,
     this.hintText,
@@ -39,24 +39,23 @@ class RoundedTextField extends StatelessWidget {
     this.autofocus = false,
     this.obscureText = false,
   }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return TextFieldContainer(
       child: TextFormField(
         onChanged: onChanged,
         cursorColor: purpleMaterialColor,
+        obscureText: obscureText,
         decoration: InputDecoration(
-          fillColor: color ?? purpleMaterialColor[100],
           isDense: true,
-          icon: icon != null
-              ? Icon(
-                  icon,
-                  color: purpleMaterialColor,
-                )
-              : null,
+          icon: Icon(
+            icon,
+            color: purpleMaterialColor[200],
+          ),
+          hintText: hintText,
           suffixIcon: suffixIcon,
           labelText: labelText,
-          hintText: hintText,
           border: InputBorder.none,
         ),
         autovalidateMode: autovalidateMode,
@@ -67,7 +66,6 @@ class RoundedTextField extends StatelessWidget {
         onSaved: onSaved,
         validator: validator,
         autofocus: autofocus,
-        obscureText: obscureText,
         style: style,
       ),
     );
