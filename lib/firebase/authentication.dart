@@ -2,9 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Authentication {
-  UserCredential? userCredential;
-  String? error;
-
   late final FirebaseAuth _firebaseAuth;
   late final FirebaseFirestore _firebaseFirestore;
 
@@ -12,15 +9,6 @@ class Authentication {
       {FirebaseAuth? firebaseAuth, FirebaseFirestore? firebaseFirestore}) {
     _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
     _firebaseFirestore = firebaseFirestore ?? FirebaseFirestore.instance;
-  }
-
-  Authentication.result({this.userCredential, this.error});
-
-  factory Authentication.fromJson(Map<String, dynamic> json) {
-    return Authentication.result(
-      userCredential: json['userCredential'],
-      error: json['error'],
-    );
   }
 
   Future<void> signOut() async {
@@ -32,7 +20,7 @@ class Authentication {
       required String password,
       required String collectionPath,
       String? name}) async {
-    late final Authentication authResult;
+    late final AuthenticationResult authResult;
     authResult =
         await createUserWithEmailAndPassword(email: email, password: password);
     if (authResult.error != null && authResult.error!.isNotEmpty) {
@@ -51,7 +39,7 @@ class Authentication {
         .set({...data});
   }
 
-  Future<Authentication> createUserWithEmailAndPassword(
+  Future<AuthenticationResult> createUserWithEmailAndPassword(
       {required String email, required String password}) async {
     UserCredential? userCredential;
     String? error;
@@ -67,10 +55,10 @@ class Authentication {
     } catch (e) {
       error = e.toString();
     }
-    return Authentication.result(userCredential: userCredential, error: error);
+    return AuthenticationResult(userCredential: userCredential, error: error);
   }
 
-  Future<Authentication> signInWithEmailAndPassword(
+  Future<AuthenticationResult> signInWithEmailAndPassword(
       {required String email, required String password}) async {
     UserCredential? userCredential;
     String? error;
@@ -88,7 +76,7 @@ class Authentication {
     } catch (e) {
       error = e.toString();
     }
-    return Authentication.result(userCredential: userCredential, error: error);
+    return AuthenticationResult(userCredential: userCredential, error: error);
   }
 
   Future<void> sendEmailVerification(User? user) async {
@@ -100,5 +88,19 @@ class Authentication {
   Future<void> verifyCurrentUser() async {
     User? user = _firebaseAuth.currentUser;
     await sendEmailVerification(user);
+  }
+}
+
+class AuthenticationResult {
+  UserCredential? userCredential;
+  String? error;
+
+  AuthenticationResult({required this.userCredential, this.error});
+
+  factory AuthenticationResult.fromJson(Map<String, dynamic> json) {
+    return AuthenticationResult(
+      userCredential: json['userCredential'],
+      error: json['error'],
+    );
   }
 }
