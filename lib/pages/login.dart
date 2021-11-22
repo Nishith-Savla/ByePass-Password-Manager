@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:password_manager/firebase/authentication.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -15,7 +16,7 @@ class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   String _email = "";
   String _password = "";
-  bool _isPasswordVisisble = false;
+  bool _isPasswordVisible = false;
   bool _isPasswordFocused = false;
   String _emailErrorMessage = "";
   String _passwordErrorMessage = "";
@@ -28,6 +29,18 @@ class _LoginState extends State<Login> {
       return true;
     }
     return false;
+  }
+
+  void login() async {
+    if (!_validate()) return;
+    final auth = Authentication();
+    final authResult = await auth.signInWithEmailAndPassword(
+        email: _email, password: _password);
+    final error = authResult.error;
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
+    }
   }
 
   @override
@@ -66,7 +79,6 @@ class _LoginState extends State<Login> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         keyboardType: TextInputType.emailAddress,
                         labelText: "Enter email address",
-                        autofocus: true,
                         autofillHints: const [AutofillHints.email],
                         icon: Icons.email,
                         validator: (email) {
@@ -100,17 +112,17 @@ class _LoginState extends State<Login> {
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           labelText: "Enter password",
                           icon: Icons.lock,
-                          obscureText: _isPasswordVisisble,
+                          obscureText: _isPasswordVisible,
                           keyboardType: TextInputType.visiblePassword,
                           autofillHints: const [AutofillHints.password],
                           suffixIcon: _isPasswordFocused
                               ? IconButton(
                                   onPressed: () {
-                                    setState(() => _isPasswordVisisble =
-                                        !_isPasswordVisisble);
+                                    setState(() => _isPasswordVisible =
+                                        !_isPasswordVisible);
                                   },
                                   icon: Icon(
-                                    _isPasswordVisisble
+                                    _isPasswordVisible
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
                                     size: 20,
@@ -143,7 +155,7 @@ class _LoginState extends State<Login> {
                 ),
                 RoundedButton(
                   text: "LOGIN",
-                  onPressed: _validate,
+                  onPressed: login,
                 ),
                 SizedBox(height: size.height * 0.02),
                 const Text(
