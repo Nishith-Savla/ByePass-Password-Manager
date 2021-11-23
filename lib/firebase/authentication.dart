@@ -19,8 +19,10 @@ class Authentication {
       {required String email,
       required String password,
       required String collectionPath,
-      String? name}) async {
+      Map<String, dynamic>? values}) async {
     late final AuthenticationResult authResult;
+    String? error;
+
     authResult =
         await createUserWithEmailAndPassword(email: email, password: password);
     if (authResult.error != null && authResult.error!.isNotEmpty) {
@@ -28,15 +30,23 @@ class Authentication {
     }
     if (authResult.userCredential == null) return null;
 
-    final data = <String, dynamic>{'email': email};
+    final data = <String, dynamic>{};
+    data['email'] = email;
+    print(authResult.userCredential!.user?.metadata.creationTime);
     data['createdAt'] =
         authResult.userCredential!.user?.metadata.creationTime ??
             FieldValue.serverTimestamp();
-    if (name != null) data['name'] = name;
-    _firebaseFirestore
+    if (values != null) data.addAll(values);
+
+    print("Above add");
+
+    await _firebaseFirestore
         .collection(collectionPath)
         .doc(authResult.userCredential!.user!.uid)
-        .set({...data});
+        .set({...data}).catchError((e) => error = e);
+
+    print("Above return");
+    return error;
   }
 
   Future<AuthenticationResult> createUserWithEmailAndPassword(
@@ -51,6 +61,8 @@ class Authentication {
         error = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         error = 'Wrong password provided for that user.';
+      } else {
+        error = e.message;
       }
     } catch (e) {
       error = e.toString();
@@ -71,7 +83,7 @@ class Authentication {
       } else if (e.code == 'email-already-in-use') {
         error = 'The account already exists for that email.';
       } else {
-        error = e.toString();
+        error = e.message;
       }
     } catch (e) {
       error = e.toString();
