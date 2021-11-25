@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:encrypt/encrypt.dart';
 
 class PasswordEntry {
-  PasswordEntry(
-      {required this.name,
-      required this.email,
+  PasswordEntry(this.name,
+      {required this.email,
       required this.createdAt,
       required String password,
       required String url,
@@ -20,6 +19,25 @@ class PasswordEntry {
   final Timestamp createdAt;
   late final IV _iv;
   late Uri uri;
+
+  factory PasswordEntry.fromJson(Map<String, dynamic> json,
+          {required String key}) =>
+      PasswordEntry(
+        json['name'] as String,
+        email: json['email'] as String,
+        createdAt: json['createdAt'] as Timestamp,
+        password: json['password'] as String,
+        url: json['url'] as String,
+        key: key,
+      );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'email': email,
+        'createdAt': createdAt,
+        'password': _password,
+        'url': uri,
+      };
 
   String getPassword(String key) {
     return Encrypter(AES(Key.fromUtf8(key))).decrypt(_password, iv: _iv);
