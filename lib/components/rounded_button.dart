@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:password_manager/utils.dart';
+import 'package:password_manager/constants.dart';
 
 class RoundedButton extends StatelessWidget {
   final String text;
