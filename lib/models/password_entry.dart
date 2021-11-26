@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show DocumentSnapshot, Timestamp;
 import 'package:encrypt/encrypt.dart';
 
 class PasswordEntry {
@@ -7,7 +8,8 @@ class PasswordEntry {
       required this.createdAt,
       required String password,
       required String url,
-      required String key}) {
+      required String key,
+      this.referenceId}) {
     uri = Uri.parse(url);
     _iv = IV.fromLength(16);
     _password = Encrypter(AES(Key.fromUtf8(key))).encrypt(password, iv: _iv);
@@ -19,6 +21,16 @@ class PasswordEntry {
   final Timestamp createdAt;
   late final IV _iv;
   late Uri uri;
+  String? referenceId;
+
+  factory PasswordEntry.fromSnapshot(DocumentSnapshot snapshot,
+      {required String key}) {
+    final newEntry = PasswordEntry.fromJson(
+        snapshot.data() as Map<String, dynamic>,
+        key: key);
+    newEntry.referenceId = snapshot.reference.id;
+    return newEntry;
+  }
 
   factory PasswordEntry.fromJson(Map<String, dynamic> json,
           {required String key}) =>
@@ -46,4 +58,7 @@ class PasswordEntry {
   void setPassword(String password, String key) {
     _password = Encrypter(AES(Key.fromUtf8(key))).encrypt(password, iv: _iv);
   }
+
+  @override
+  String toString() => "PasswordEntry<$name>";
 }
