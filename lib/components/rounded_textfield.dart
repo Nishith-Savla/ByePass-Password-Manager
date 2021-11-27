@@ -3,6 +3,7 @@ import 'package:password_manager/components/textfield_container.dart';
 import 'package:password_manager/constants.dart';
 
 class RoundedTextFormField extends StatelessWidget {
+  final bool disabled;
   final Color? color;
   final String? labelText;
   final String? hintText;
@@ -21,9 +22,9 @@ class RoundedTextFormField extends StatelessWidget {
   final FocusNode? focusNode;
 
   const RoundedTextFormField({
-    Key? key,
     this.labelText,
     this.hintText,
+    Key? key,
     this.color,
     this.icon,
     this.suffixIcon,
@@ -38,6 +39,7 @@ class RoundedTextFormField extends StatelessWidget {
     this.validator,
     this.autofocus = false,
     this.obscureText = false,
+    this.disabled = false,
   }) : super(key: key);
 
   @override
@@ -67,6 +69,7 @@ class RoundedTextFormField extends StatelessWidget {
         validator: validator,
         autofocus: autofocus,
         style: style,
+        readOnly: disabled,
       ),
     );
   }
