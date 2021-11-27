@@ -51,7 +51,7 @@ class RoundedTextFormField extends StatelessWidget {
           isDense: true,
           icon: Icon(
             icon,
-            color: purpleMaterialColor[200],
+            color: color ?? purpleMaterialColor[200],
           ),
           hintText: hintText,
           suffixIcon: suffixIcon,
