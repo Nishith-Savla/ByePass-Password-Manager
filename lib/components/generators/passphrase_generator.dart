@@ -30,14 +30,15 @@ class PassphraseGenerator {
           "x-rapidapi-host": "quiterandomapi.p.rapidapi.com",
         });
 
-    wordList = [];
-    for (String word in jsonDecode(response.body)) {
-      if (word.length < 7) continue;
-      word = word.replaceAll('-', '');
-      word = word.replaceAll("'", "");
-      wordList.add(word);
+    if (response.statusCode == 200) {
+      wordList = [];
+      for (final word in jsonDecode(response.body)) {
+        if (word.length < 7) continue;
+        wordList.add(word.replaceAll('-', '').replaceAll("'", ""));
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 
   String generate() {
