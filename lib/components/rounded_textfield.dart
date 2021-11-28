@@ -19,6 +19,7 @@ class RoundedTextFormField extends StatelessWidget {
   final bool autofocus;
   final bool obscureText;
   final FocusNode? focusNode;
+  final TextEditingController? controller;
 
   const RoundedTextFormField({
     Key? key,
@@ -36,6 +37,7 @@ class RoundedTextFormField extends StatelessWidget {
     this.autofillHints,
     this.onSaved,
     this.validator,
+    this.controller,
     this.autofocus = false,
     this.obscureText = false,
   }) : super(key: key);
@@ -44,6 +46,7 @@ class RoundedTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFieldContainer(
       child: TextFormField(
+        controller: controller,
         onChanged: onChanged,
         cursorColor: purpleMaterialColor,
         obscureText: obscureText,

@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:password_manager/components/password_widget.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart';
+import 'package:password_manager/models/display_passwords.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,9 +14,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedTabIndex = 0;
   bool showCrossIcon = false;
-  final String imageUrl =
-      "https://static.deepsource.io/avatars/1f8d2e00-2bd6-4308-b96b-abf4e89ee762.jpg";
 
+  final TextEditingController _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
                 horizontal: 15.0,
               ),
               child: RoundedTextFormField(
+                controller: _controller,
                 style: const TextStyle(
                   fontSize: 18,
                 ),
@@ -41,7 +42,11 @@ class _HomePageState extends State<HomePage> {
                     color:
                         showCrossIcon ? darkBlueishColor : Colors.transparent,
                   ),
-                  onPressed: showCrossIcon ? () {} : null,
+                  onPressed: showCrossIcon
+                      ? () {
+                          _controller.clear();
+                        }
+                      : null,
                 ),
                 color: darkBlueishColor,
                 onChanged: (value) => setState(() {
@@ -66,25 +71,35 @@ class _HomePageState extends State<HomePage> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
               child: SizedBox(
-                height: size.height * 0.58,
+                height: size.height * 0.585,
                 width: double.infinity,
-                child: Container(
-                  child: Text(selectedTabIndex.toString()),
-                  color: purpleMaterialColor,
+                child: ListView.builder(
+                  itemCount: AvailablePasswords.products.length,
+                  itemBuilder: (context, index) {
+                    return PasswordWidget(
+                      displayPasswords: AvailablePasswords.products[index],
+                    );
+                  },
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.lock_outline_rounded), label: "Vault"),
+            icon: Icon(Icons.lock_outline_rounded),
+            label: "Vault",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.repeat_outlined), label: "Generate"),
+            icon: Icon(Icons.repeat_outlined),
+            label: "Generate",
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined), label: "Settings"),
+            icon: Icon(Icons.settings_outlined),
+            label: "Settings",
+          ),
         ],
         currentIndex: selectedTabIndex,
         selectedItemColor: darkBlueishColor,
