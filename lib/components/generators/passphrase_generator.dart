@@ -41,7 +41,7 @@ class PassphraseGenerator {
     return true;
   }
 
-  void keepFetchingWordList() async {
+  Future<void> keepFetchingWordList() async {
     for (int i = 0; i < 25; ++i) {
       if (await fetchWordList()) break;
       sleep(const Duration(seconds: 1));
@@ -53,7 +53,7 @@ class PassphraseGenerator {
         includeNumbers ? _generateWithNumber() : _generateWithoutNumber();
 
     // If list has more words
-    if (_currentIndex + wordCount <= wordList.length) {
+    if (_currentIndex + 2 * wordCount < wordList.length) {
       _currentIndex += wordCount;
       return passphrase;
     }
