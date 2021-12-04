@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
-import 'package:password_manager/constants.dart';
+import 'package:password_manager/constants.dart' show emailRegex, nameRegex;
 import 'package:password_manager/firebase/authentication.dart';
 
 class Signup extends StatefulWidget {
@@ -15,49 +15,56 @@ class Signup extends StatefulWidget {
 
 extension Validation on String {
   String isEmailValid() {
-    String _errorMessage = "";
-    if (!isNotEmpty) {
-      _errorMessage = "Email field is empty";
-    } else if (!RegExp(emailRegex).hasMatch(this)) {
-      _errorMessage = "Email is invalid";
-    } else {
-      _errorMessage = "";
-    }
-    return _errorMessage;
+    if (isEmpty) return "Email cannot be empty";
+
+    if (!RegExp(emailRegex).hasMatch(this)) return "Invalid email";
+
+    return "";
   }
 
   String isPasswordValid() {
-    String _errorMessage = "";
-    if (!isNotEmpty) {
-      _errorMessage = "Password field is empty";
-    }
+    final _errors = [];
+    if (isEmpty) return "Password cannot be empty";
+
     if (length < 8) {
-      _errorMessage = ' • minimum 8 characters\n';
-    } else if (!RegExp(r'[a-z]').hasMatch(this)) {
-      _errorMessage = ' • at least 1 lowercase letter\n';
-    } else if (!RegExp(r'[A-Z]').hasMatch(this)) {
-      _errorMessage = ' • at least 1 uppercase letter\n';
-    } else if (!RegExp(r'[!@#\$&*~.-/:`]').hasMatch(this)) {
-      _errorMessage = ' • at least 1 special character\n';
-    } else if (!RegExp(r'\d').hasMatch(this)) {
-      _errorMessage = ' • at least 1 number\n';
+      _errors.add(' • minimum 8 characters');
     }
-    return _errorMessage;
+    if (!RegExp(r'[a-z]').hasMatch(this)) {
+      _errors.add(' • A lowercase letter');
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(this)) {
+      _errors.add(' • An uppercase letter');
+    }
+    if (!RegExp(r'[!@#\$&*~.-/:`]').hasMatch(this)) {
+      _errors.add(' • A special character');
+    }
+    if (!RegExp(r'\d').hasMatch(this)) {
+      _errors.add(' • A number');
+    }
+
+    if (_errors.isEmpty) return "";
+
+    final _errorMessage = StringBuffer("Password must contain: \n");
+    for (int i = 0; i < _errors.length; ++i) {
+      if (i % 2 == 1) {
+        _errorMessage.writeln(_errors[i]);
+        continue;
+      }
+
+      _errorMessage.write(_errors[i] + '\t');
+    }
+
+    return _errorMessage.toString().trimRight();
   }
 
   String isNameValid() {
-    String _errorMessage = "";
-    if (isEmpty) {
-      _errorMessage = "Name field is empty";
-    } else if (RegExp("[^a-zA-Z0-9]+").hasMatch(this)) {
-      _errorMessage = "Special characters are not allowed";
-    } else if (RegExp('[0-9]+').hasMatch(this)) {
-      _errorMessage = "only characters are allowed";
-    } else {
-      _errorMessage = "";
+    if (isEmpty) return "Name field is empty";
+
+    if (!RegExp(nameRegex).hasMatch(this)) {
+      return "Invalid name. Use only letters and spaces";
     }
 
-    return _errorMessage;
+    return "";
   }
 }
 
