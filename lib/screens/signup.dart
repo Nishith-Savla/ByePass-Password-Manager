@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
@@ -72,6 +73,8 @@ class _SignupState extends State<Signup> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = true;
   bool _isPasswordFocused = false;
+  bool _isConfirmPasswordFocused = false;
+
   String _name = "";
   String _email = "";
   String _password = "";
@@ -81,6 +84,11 @@ class _SignupState extends State<Signup> {
   String _emailErrorMessage = "";
   String _passwordErrorMessage = "";
   String _confirmPasswordErrorMessage = "";
+
+  final _nameErrorController = JustTheController();
+  final _emailErrorController = JustTheController();
+  final _passwordErrorController = JustTheController();
+  final _confirmPasswordErrorController = JustTheController();
 
   bool _validate() {
     if (_name.isNotEmpty &&
@@ -94,6 +102,19 @@ class _SignupState extends State<Signup> {
       debugPrint(_confirmPassword);
       _formKey.currentState!.save();
       return true;
+    }
+
+    if (_nameErrorMessage.isNotEmpty) {
+      _nameErrorController.showTooltip();
+    }
+    if (_emailErrorMessage.isNotEmpty) {
+      _emailErrorController.showTooltip();
+    }
+    if (_confirmPasswordErrorMessage.isNotEmpty) {
+      _confirmPasswordErrorController.showTooltip();
+    }
+    if (_passwordErrorMessage.isNotEmpty) {
+      _passwordErrorController.showTooltip();
     }
     return false;
   }
@@ -136,19 +157,19 @@ class _SignupState extends State<Signup> {
                 ),
 
                 SizedBox(
-                  height: size.height * 0.02,
+                  height: size.height * 0.01,
                 ),
                 SvgPicture.asset(
                   "assets/icons/signup.svg",
                   height: size.height * 0.25,
                 ),
                 SizedBox(
-                  height: size.height * 0.02,
+                  height: size.height * 0.01,
                 ),
 
                 // Name
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Column(
                     children: [
                       RoundedTextFormField(
@@ -156,7 +177,9 @@ class _SignupState extends State<Signup> {
                         keyboardType: TextInputType.name,
                         labelText: "Enter your name",
                         autofillHints: const [AutofillHints.name],
-                        icon: Icons.person,
+                        icon: Icons.person_outlined,
+                        tooltipMessage: _nameErrorMessage,
+                        tooltipController: _nameErrorController,
                         validator: (name) {
                           WidgetsBinding.instance!.addPostFrameCallback(
                             (_) => setState(
@@ -165,19 +188,13 @@ class _SignupState extends State<Signup> {
                         },
                         onChanged: (name) => _name = name!,
                       ),
-                      _nameErrorMessage.isNotEmpty
-                          ? Text(
-                              _nameErrorMessage,
-                              style: const TextStyle(color: Colors.red),
-                            )
-                          : Container(),
                     ],
                   ),
                 ),
 
                 // Email
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Column(
                     children: [
                       RoundedTextFormField(
@@ -185,7 +202,9 @@ class _SignupState extends State<Signup> {
                         keyboardType: TextInputType.emailAddress,
                         labelText: "Enter email address",
                         autofillHints: const [AutofillHints.email],
-                        icon: Icons.email,
+                        icon: Icons.email_outlined,
+                        tooltipMessage: _emailErrorMessage,
+                        tooltipController: _emailErrorController,
                         validator: (email) {
                           WidgetsBinding.instance!.addPostFrameCallback(
                             (_) => setState(
@@ -195,27 +214,22 @@ class _SignupState extends State<Signup> {
                         },
                         onSaved: (email) => _email = email!,
                       ),
-                      _emailErrorMessage.isNotEmpty
-                          ? Text(
-                              _emailErrorMessage,
-                              textAlign: TextAlign.left,
-                              style: const TextStyle(color: Colors.red),
-                            )
-                          : Container(),
                     ],
                   ),
                 ),
 
                 // Password
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Column(
                     children: [
                       Focus(
+                        onFocusChange: (hasFocus) =>
+                            setState(() => _isPasswordFocused = hasFocus),
                         child: RoundedTextFormField(
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           labelText: "Enter password",
-                          icon: Icons.lock,
+                          icon: Icons.lock_outlined,
                           obscureText: _isPasswordVisible,
                           keyboardType: TextInputType.visiblePassword,
                           autofillHints: const [AutofillHints.password],
@@ -233,6 +247,8 @@ class _SignupState extends State<Signup> {
                                   ),
                                 )
                               : null,
+                          tooltipMessage: _passwordErrorMessage,
+                          tooltipController: _passwordErrorController,
                           validator: (password) {
                             WidgetsBinding.instance!.addPostFrameCallback(
                               (_) => setState(() => _passwordErrorMessage =
@@ -241,81 +257,80 @@ class _SignupState extends State<Signup> {
                           },
                           onChanged: (password) => _password = password!,
                         ),
-                        onFocusChange: (hasFocus) =>
-                            setState(() => _isPasswordFocused = hasFocus),
                       ),
-                      _passwordErrorMessage.isNotEmpty
-                          ? Text(
-                              _passwordErrorMessage,
-                              style: const TextStyle(color: Colors.red),
-                            )
-                          : Container(),
                     ],
                   ),
                 ),
 
                 // Confirm Password
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Column(
                     children: [
                       Focus(
-                        child: RoundedTextFormField(
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          labelText: "Confirm your password",
-                          icon: Icons.lock,
-                          obscureText: _isPasswordVisible,
-                          keyboardType: TextInputType.visiblePassword,
-                          autofillHints: const [AutofillHints.password],
-                          suffixIcon: _isPasswordFocused
-                              ? IconButton(
-                                  onPressed: () {
-                                    setState(() => _isPasswordVisible =
-                                        !_isPasswordVisible);
-                                  },
-                                  icon: Icon(
-                                    _isPasswordVisible
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    size: 20,
-                                  ),
-                                )
-                              : null,
-                          validator: (confirmPassword) {
-                            WidgetsBinding.instance!.addPostFrameCallback(
-                              (_) => setState(() =>
-                                  _confirmPasswordErrorMessage =
-                                      confirmPassword!.isNotEmpty
-                                          ? confirmPassword == _password
-                                              ? ""
-                                              : "Password is not matching"
-                                          : 'Confirm Password cannot be empty'),
-                            );
+                          onFocusChange: (hasFocus) {
+                            setState(
+                                () => _isConfirmPasswordFocused = hasFocus);
                           },
-                          onChanged: (confirmPassword) =>
-                              _confirmPassword = confirmPassword!,
-                        ),
-                        onFocusChange: (hasFocus) {},
-                      ),
-                      _confirmPasswordErrorMessage.isNotEmpty
-                          ? Text(
-                              _confirmPasswordErrorMessage,
-                              style: const TextStyle(color: Colors.red),
-                            )
-                          : Container(),
+                          child: RoundedTextFormField(
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            labelText: "Confirm your password",
+                            icon: Icons.lock_outlined,
+                            obscureText: _isPasswordVisible,
+                            keyboardType: TextInputType.visiblePassword,
+                            autofillHints: const [AutofillHints.password],
+                            suffixIcon: _isConfirmPasswordFocused
+                                ? IconButton(
+                                    onPressed: () {
+                                      setState(() => _isPasswordVisible =
+                                          !_isPasswordVisible);
+                                    },
+                                    icon: Icon(
+                                      _isPasswordVisible
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      size: 20,
+                                    ),
+                                  )
+                                : null,
+                            tooltipMessage: _confirmPasswordErrorMessage,
+                            tooltipController: _confirmPasswordErrorController,
+                            validator: (confirmPassword) {
+                              WidgetsBinding.instance!.addPostFrameCallback(
+                                (_) {
+                                  if (_confirmPassword == _password) return;
+
+                                  setState(() => _confirmPasswordErrorMessage =
+                                      confirmPassword!.isEmpty
+                                          ? 'Confirm Password cannot be empty'
+                                          : "Passwords don't match");
+                                },
+                              );
+                            },
+                            onChanged: (confirmPassword) =>
+                                _confirmPassword = confirmPassword!,
+                          )),
                     ],
                   ),
                 ),
-
-                RoundedButton(
-                  text: "SIGN UP",
-                  onPressed: _signup,
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5.0),
+                  child: RoundedButton(
+                    text: "SIGN UP",
+                    onPressed: _signup,
+                  ),
                 ),
-                SizedBox(height: size.height * 0.02),
-                const Text(
-                  "Already have an account? Login",
-                  style: TextStyle(
-                    fontSize: 15,
+                Padding(
+                  padding: const EdgeInsets.only(top: 5.0),
+                  child: GestureDetector(
+                    // onTap: Navigator.of(context).pushReplacementNamed('/login'),
+                    child: const Text(
+                      "Already have an account? Login",
+                      style: TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
               ],
