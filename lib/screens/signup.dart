@@ -186,7 +186,13 @@ class _SignupState extends State<Signup> {
                                 () => _nameErrorMessage = name!.isNameValid()),
                           );
                         },
-                        onChanged: (name) => _name = name!,
+                        onChanged: (name) {
+                          if (_nameErrorController.value ==
+                              TooltipStatus.isShowing) {
+                            _nameErrorController.hideTooltip();
+                          }
+                          _name = name!;
+                        },
                       ),
                     ],
                   ),
@@ -212,7 +218,13 @@ class _SignupState extends State<Signup> {
                             ),
                           );
                         },
-                        onSaved: (email) => _email = email!,
+                        onChanged: (email) {
+                          if (_emailErrorController.value ==
+                              TooltipStatus.isShowing) {
+                            _emailErrorController.hideTooltip();
+                          }
+                          _email = email!;
+                        },
                       ),
                     ],
                   ),
@@ -255,7 +267,13 @@ class _SignupState extends State<Signup> {
                                   password!.isPasswordValid()),
                             );
                           },
-                          onChanged: (password) => _password = password!,
+                          onChanged: (password) {
+                            if (_passwordErrorController.value ==
+                                TooltipStatus.isShowing) {
+                              _passwordErrorController.hideTooltip();
+                            }
+                            _password = password!;
+                          },
                         ),
                       ),
                     ],
@@ -268,49 +286,53 @@ class _SignupState extends State<Signup> {
                   child: Column(
                     children: [
                       Focus(
-                          onFocusChange: (hasFocus) {
-                            setState(
-                                () => _isConfirmPasswordFocused = hasFocus);
-                          },
-                          child: RoundedTextFormField(
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            labelText: "Confirm your password",
-                            icon: Icons.lock_outlined,
-                            obscureText: _isPasswordVisible,
-                            keyboardType: TextInputType.visiblePassword,
-                            autofillHints: const [AutofillHints.password],
-                            suffixIcon: _isConfirmPasswordFocused
-                                ? IconButton(
-                                    onPressed: () {
-                                      setState(() => _isPasswordVisible =
-                                          !_isPasswordVisible);
-                                    },
-                                    icon: Icon(
-                                      _isPasswordVisible
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                      size: 20,
-                                    ),
-                                  )
-                                : null,
-                            tooltipMessage: _confirmPasswordErrorMessage,
-                            tooltipController: _confirmPasswordErrorController,
-                            validator: (confirmPassword) {
-                              WidgetsBinding.instance!.addPostFrameCallback(
-                                (_) {
-                                  if (_confirmPassword == _password) return;
+                        onFocusChange: (hasFocus) {
+                          setState(() => _isConfirmPasswordFocused = hasFocus);
+                        },
+                        child: RoundedTextFormField(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          labelText: "Confirm your password",
+                          icon: Icons.lock_outlined,
+                          obscureText: _isPasswordVisible,
+                          keyboardType: TextInputType.visiblePassword,
+                          autofillHints: const [AutofillHints.password],
+                          suffixIcon: _isConfirmPasswordFocused
+                              ? IconButton(
+                                  onPressed: () {
+                                    setState(() => _isPasswordVisible =
+                                        !_isPasswordVisible);
+                                  },
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                  ),
+                                )
+                              : null,
+                          tooltipMessage: _confirmPasswordErrorMessage,
+                          tooltipController: _confirmPasswordErrorController,
+                          validator: (confirmPassword) {
+                            WidgetsBinding.instance!.addPostFrameCallback(
+                              (_) {
+                                if (_confirmPassword == _password) return;
 
-                                  setState(() => _confirmPasswordErrorMessage =
-                                      confirmPassword!.isEmpty
-                                          ? 'Confirm Password cannot be empty'
-                                          : "Passwords don't match");
-                                },
-                              );
-                            },
-                            onChanged: (confirmPassword) =>
-                                _confirmPassword = confirmPassword!,
-                          )),
+                                setState(() => _confirmPasswordErrorMessage =
+                                    confirmPassword!.isEmpty
+                                        ? 'Confirm Password cannot be empty'
+                                        : "Passwords don't match");
+                              },
+                            );
+                          },
+                          onChanged: (confirmPassword) {
+                            if (_confirmPasswordErrorController.value ==
+                                TooltipStatus.isShowing) {
+                              _confirmPasswordErrorController.hideTooltip();
+                            }
+                            _confirmPassword = confirmPassword!;
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
