@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart'
     show DocumentSnapshot, Timestamp;
 import 'package:encrypt/encrypt.dart';
@@ -8,11 +10,11 @@ class PasswordEntry {
       required this.createdAt,
       required String password,
       required String url,
-      required String key,
+      required Uint8List key,
       this.referenceId}) {
     uri = Uri.parse(url);
     _iv = IV.fromLength(16);
-    _password = Encrypter(AES(Key.fromUtf8(key))).encrypt(password, iv: _iv);
+    _password = Encrypter(AES(Key(key))).encrypt(password, iv: _iv);
   }
 
   String name;
@@ -24,7 +26,7 @@ class PasswordEntry {
   String? referenceId;
 
   factory PasswordEntry.fromSnapshot(DocumentSnapshot snapshot,
-      {required String key}) {
+      {required Uint8List key}) {
     final newEntry = PasswordEntry.fromJson(
         snapshot.data() as Map<String, dynamic>,
         key: key);
@@ -33,7 +35,7 @@ class PasswordEntry {
   }
 
   factory PasswordEntry.fromJson(Map<String, dynamic> json,
-          {required String key}) =>
+          {required Uint8List key}) =>
       PasswordEntry(
         json['name'] as String,
         email: json['email'] as String,
@@ -51,12 +53,12 @@ class PasswordEntry {
         'url': uri,
       };
 
-  String getPassword(String key) {
-    return Encrypter(AES(Key.fromUtf8(key))).decrypt(_password, iv: _iv);
+  String getPassword(Uint8List key) {
+    return Encrypter(AES(Key(key))).decrypt(_password, iv: _iv);
   }
 
-  void setPassword(String password, String key) {
-    _password = Encrypter(AES(Key.fromUtf8(key))).encrypt(password, iv: _iv);
+  void setPassword(String password, Uint8List key) {
+    _password = Encrypter(AES(Key(key))).encrypt(password, iv: _iv);
   }
 
   @override

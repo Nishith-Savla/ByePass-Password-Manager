@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:password_manager/models/display_passwords.dart';
+import 'package:password_manager/models/password_entry.dart';
 import 'package:flutter/services.dart';
 
 class PasswordWidget extends StatelessWidget {
-  final DisplayPasswords displayPasswords;
+  final PasswordEntry entry;
+  late final String faviconPath;
 
-  const PasswordWidget({Key? key, required this.displayPasswords})
-      : super(key: key);
+  PasswordWidget({Key? key, required this.entry}) : super(key: key) {
+    faviconPath = "${entry.uri.origin}/favicon.ico";
+  }
 
-  ListTile addBottomNavWidget(IconData icon, String title, Function() fun) {
+  ListTile itemInfoModal(IconData icon, String title, VoidCallback fun) {
     return ListTile(
       dense: true,
       leading: Icon(
@@ -50,19 +52,19 @@ class PasswordWidget extends StatelessWidget {
           minLeadingWidth: 0.0,
           onTap: () {},
           leading: Image.network(
-            displayPasswords.favicon,
+            faviconPath,
             height: 30.0,
             width: 30.0,
           ),
           title: Text(
-            displayPasswords.siteName,
+            entry.name,
             style: const TextStyle(
               fontSize: 16.0,
               fontWeight: FontWeight.w500,
             ),
           ),
           subtitle: Text(
-            displayPasswords.email,
+            entry.email,
             style: const TextStyle(
               fontSize: 13.0,
               fontWeight: FontWeight.w500,
@@ -84,12 +86,12 @@ class PasswordWidget extends StatelessWidget {
                         ListTile(
                           dense: true,
                           leading: Image.network(
-                            displayPasswords.favicon,
+                            faviconPath,
                             height: 30.0,
                             width: 30.0,
                           ),
                           title: Text(
-                            displayPasswords.siteName,
+                            entry.name,
                             style: const TextStyle(fontSize: 18.0),
                           ),
                           trailing: IconButton(
@@ -102,34 +104,34 @@ class PasswordWidget extends StatelessWidget {
                         Divider(
                           color: Colors.grey.shade500,
                         ),
-                        addBottomNavWidget(
+                        itemInfoModal(
                           Icons.copy_outlined,
                           "Copy email",
                           () {
                             copyToClipboard(
                               context,
-                              displayPasswords.email,
+                              entry.email,
                               "Email",
                             );
                           },
                         ),
-                        addBottomNavWidget(
+                        itemInfoModal(
                           Icons.copy_outlined,
                           "Copy password",
                           () {
                             copyToClipboard(
                               context,
-                              displayPasswords.password,
+                              faviconPath,
                               "Password",
                             );
                           },
                         ),
-                        addBottomNavWidget(
+                        itemInfoModal(
                           Icons.info_outline,
                           "View details",
                           () {},
                         ),
-                        addBottomNavWidget(
+                        itemInfoModal(
                           Icons.edit_outlined,
                           "Edit",
                           () {},
