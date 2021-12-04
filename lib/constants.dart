@@ -3,7 +3,7 @@ import 'package:flutter/material.dart' show Color, MaterialColor;
 const emailRegex =
     r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
 
-const nameRegex = r'^[^\W\d_]+(?:[-\s][^\W\d_]+)*$';
+const nameRegex = r"^[^\W\d_]+(?:[-\s](?:[^\W\d_]|['])+)*$";
 
 const purpleMaterialColor = MaterialColor(0xFFA633FF, {
   50: Color.fromRGBO(166, 51, 255, .1),
