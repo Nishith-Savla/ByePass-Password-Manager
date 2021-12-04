@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_the_tooltip/just_the_tooltip.dart';
 import 'package:password_manager/components/textfield_container.dart';
 import 'package:password_manager/constants.dart';
 
@@ -19,9 +20,13 @@ class RoundedTextFormField extends StatelessWidget {
   final bool autofocus;
   final bool obscureText;
   final FocusNode? focusNode;
+  final String tooltipMessage;
+
+  final JustTheController? tooltipController;
 
   const RoundedTextFormField({
     Key? key,
+    this.tooltipController,
     this.labelText,
     this.hintText,
     this.color,
@@ -38,6 +43,7 @@ class RoundedTextFormField extends StatelessWidget {
     this.validator,
     this.autofocus = false,
     this.obscureText = false,
+    this.tooltipMessage = "",
   }) : super(key: key);
 
   @override
@@ -49,10 +55,26 @@ class RoundedTextFormField extends StatelessWidget {
         obscureText: obscureText,
         decoration: InputDecoration(
           isDense: true,
-          icon: Icon(
-            icon,
-            color: purpleMaterialColor[200],
-          ),
+          icon: tooltipMessage.isNotEmpty && tooltipController != null
+              ? JustTheTooltip(
+                  preferredDirection: AxisDirection.down,
+                  controller: tooltipController,
+                  content: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(tooltipMessage),
+                  ),
+                  tailLength: 10.0,
+                  tailBaseWidth: 15,
+                  offset: -8,
+                  triggerMode: TooltipTriggerMode.tap,
+                  child: InkWell(
+                    splashFactory: InkRipple.splashFactory,
+                    radius: 5,
+                    child: Icon(icon, size: 20, color: Colors.red),
+                    onTap: () => tooltipController!.showTooltip(),
+                  ),
+                )
+              : Icon(icon, size: 20, color: purpleMaterialColor),
           hintText: hintText,
           suffixIcon: suffixIcon,
           labelText: labelText,
