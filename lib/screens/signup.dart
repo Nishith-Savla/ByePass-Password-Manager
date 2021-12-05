@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:just_the_tooltip/just_the_tooltip.dart';
+import 'package:just_the_tooltip/just_the_tooltip.dart'
+    show JustTheController, TooltipStatus;
 import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
@@ -47,7 +48,7 @@ extension Validation on String {
 
     final _errorMessage = StringBuffer("Password must contain: \n");
     for (int i = 0; i < _errors.length; ++i) {
-      if (i % 2 == 1) {
+      if (i.isOdd) {
         _errorMessage.writeln(_errors[i]);
         continue;
       }
