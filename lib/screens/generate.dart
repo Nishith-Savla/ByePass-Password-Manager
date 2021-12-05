@@ -2,8 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart' show describeEnum;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'
-    show LengthLimitingTextInputFormatter, TextInputType;
+import 'package:flutter/services.dart';
 import 'package:password_manager/components/generators/passphrase_generator.dart';
 import 'package:password_manager/components/generators/password_generator.dart';
 
@@ -15,28 +14,79 @@ extension EnumWithStringValue on Enum {
 
 class Generate extends StatefulWidget {
   final GenerateType generateType;
-
   const Generate({Key? key, required this.generateType}) : super(key: key);
 
   @override
   State<Generate> createState() => _GenerateState();
 }
 
+class _GreyBackground extends StatelessWidget {
+  final Widget child;
+  final double verticalPadding;
+  final double horizontalPadding;
+  final double verticalMargin;
+  final double horizontalMargin;
+
+  const _GreyBackground(
+      {Key? key,
+      required this.child,
+      this.horizontalMargin = 0.0,
+      this.verticalPadding = 3.0,
+      this.horizontalPadding = 10.0,
+      this.verticalMargin = 5.0})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(25.0),
+      ),
+      padding: EdgeInsets.symmetric(
+        vertical: verticalPadding,
+        horizontal: horizontalPadding,
+      ),
+      margin: EdgeInsets.symmetric(
+        vertical: verticalMargin,
+        horizontal: horizontalMargin,
+      ),
+      child: child,
+    );
+  }
+}
+
 class _GenerateState extends State<Generate> {
   late GenerateType generateType;
-
   late final PassphraseGenerator passphraseGenerator;
   late final PasswordGenerator passwordGenerator;
   late int length;
-  late final TextEditingController lengthController;
   String generatedValue = "Generating... ";
 
-  void _handleLengthChange(double value) {
+  void _copyToClipBoard(String value) {
+    Clipboard.setData(ClipboardData(
+      text: value,
+    )).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "password has been copied to your clipboard",
+          ),
+        ),
+      );
+    });
+  }
+
+  void _onLengthChange(double value) {
     final newLength = value.toInt();
     if (newLength == length) return;
 
     setState(() => length = newLength);
-    lengthController.text = length.toString();
+
+    if (newLength < length && generateType == GenerateType.password) {
+      passwordGenerator.minSpecialChars = min(5, (length / 2 - 1).round());
+      passwordGenerator.minNumbers = min(5, (length / 2 - 1).round());
+    }
   }
 
   Future<String> _generate() async {
@@ -72,263 +122,375 @@ class _GenerateState extends State<Generate> {
     passwordGenerator = PasswordGenerator(12);
 
     () async {
-      generatedValue = await _generate();
+      final _generated = await _generate();
+      setState(() => generatedValue = _generated);
     }();
 
     length = generateType == GenerateType.password
         ? passwordGenerator.length
         : passphraseGenerator.wordCount;
-
-    lengthController = TextEditingController(text: length.toString());
-    lengthController.addListener(() {
-      final newLength = int.tryParse(lengthController.text) ?? length;
-      if (newLength > 7 && newLength < 51) {
-        setState(() => length = newLength);
-        passwordGenerator.length = newLength;
-        _regenerate();
-      }
-    });
   }
 
-  Widget renderPasswordGeneratorFields(Size size) {
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Text("Length"),
-            Expanded(
-              child: Slider(
-                value: length.toDouble(),
-                min: 8,
-                max: 50,
-                divisions: 50 - 8 - 1,
-                onChanged: _handleLengthChange,
-              ),
-            ),
-            SizedBox(
-              width: size.width * 0.125,
-              child: TextField(
-                controller: lengthController,
-                inputFormatters: [LengthLimitingTextInputFormatter(2)],
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-              ),
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(child: Text('Include lowercase letters: ')),
-            Switch(
-              value: passwordGenerator.addLowercaseLetters,
-              onChanged: (bool value) {
-                passwordGenerator.addLowercaseLetters = value;
-                _regenerate();
-              },
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(child: Text('Include uppercase letters: ')),
-            Switch(
-              value: passwordGenerator.addUppercaseLetters,
-              onChanged: (bool value) {
-                passwordGenerator.addUppercaseLetters = value;
-                _regenerate();
-              },
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Text('Minimum special characters: '),
-            ),
-            Text(passwordGenerator.minSpecialChars.toString()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-              child: ElevatedButton(
-                child: const Text('-'),
-                onPressed: passwordGenerator.minSpecialChars > 0
-                    ? () {
-                        --passwordGenerator.minSpecialChars;
-                        _regenerate();
-                      }
-                    : null,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
-              child: ElevatedButton(
-                child: const Text('+'),
-                onPressed: passwordGenerator.minSpecialChars <
-                        min(5, passwordGenerator.length / 2 - 1)
-                    ? () {
-                        ++passwordGenerator.minSpecialChars;
-                        _regenerate();
-                      }
-                    : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Text('Minimum numbers: '),
-            ),
-            Text(passwordGenerator.minNumbers.toString()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-              child: ElevatedButton(
-                child: const Text('-'),
-                onPressed: passwordGenerator.minNumbers > 0
-                    ? () {
-                        --passwordGenerator.minNumbers;
-                        _regenerate();
-                      }
-                    : null,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
-              child: ElevatedButton(
-                child: const Text('+'),
-                onPressed: passwordGenerator.minNumbers <
-                        min(5, passwordGenerator.length / 2 - 1)
-                    ? () {
-                        ++passwordGenerator.minNumbers;
-                        _regenerate();
-                      }
-                    : null,
-              ),
-            ),
-          ],
-        ),
-      )
-    ]);
+  bool canDecrementSpecialChar() => passwordGenerator.minSpecialChars > 0;
+
+  void onSpecialCharDecrement() {
+    --passwordGenerator.minSpecialChars;
+    _regenerate();
   }
 
-  Widget renderPassphraseGeneratorFields(Size size) {
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(
-              child: Text('Word Count: '),
-            ),
-            Text(passphraseGenerator.wordCount.toString()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
-              child: ElevatedButton(
-                child: const Text('-'),
-                onPressed: passphraseGenerator.wordCount > 3
-                    ? () {
-                        --passphraseGenerator.wordCount;
-                        _regenerate();
-                      }
-                    : null,
+  bool canIncrementSpecialChar() =>
+      passwordGenerator.minSpecialChars <
+      min(5, passwordGenerator.length / 2 - 1);
+
+  void onSpecialCharIncrement() {
+    ++passwordGenerator.minSpecialChars;
+    _regenerate();
+  }
+
+  bool canDecrementNumber() => passwordGenerator.minNumbers > 0;
+
+  void onNumberDecrement() {
+    if (passwordGenerator.minNumbers > 0) {
+      --passwordGenerator.minNumbers;
+      _regenerate();
+    }
+  }
+
+  bool canIncrementNumber() =>
+      passwordGenerator.minNumbers < min(5, passwordGenerator.length / 2 - 1);
+
+  void onNumberIncrement() {
+    if (passwordGenerator.minNumbers <
+        min(5, passwordGenerator.length / 2 - 1)) {
+      ++passwordGenerator.minNumbers;
+      _regenerate();
+    }
+  }
+
+  Widget _renderNumericRow({
+    required String title,
+    required String number,
+    required bool Function() canDecrement,
+    required bool Function() canIncrement,
+    required VoidCallback onDecrement,
+    required VoidCallback onIncrement,
+  }) {
+    return _GreyBackground(
+      verticalPadding: 10.0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16.0,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
-              child: ElevatedButton(
-                child: const Text('+'),
-                onPressed: passphraseGenerator.wordCount < 16
-                    ? () {
-                        ++passphraseGenerator.wordCount;
-                        _regenerate();
-                      }
-                    : null,
+          ),
+          Row(
+            children: [
+              SizedBox(
+                height: 35.0,
+                width: 35.0,
+                child: ElevatedButton(
+                  onPressed: canDecrement() ? onDecrement : null,
+                  child: const Text(
+                    '-',
+                    style: TextStyle(fontSize: 18.0),
+                    textAlign: TextAlign.center,
+                  ),
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.0),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
+              Container(
+                child: Text(
+                  number.padLeft(2, '0'),
+                ),
+                margin: const EdgeInsets.symmetric(horizontal: 10.0),
+              ),
+              SizedBox(
+                height: 35.0,
+                width: 35.0,
+                child: ElevatedButton(
+                  onPressed: canIncrement() ? onIncrement : null,
+                  child: const Text(
+                    '+',
+                    style: TextStyle(fontSize: 18.0),
+                    textAlign: TextAlign.center,
+                  ),
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
       ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(child: Text('Include numbers: ')),
-            Switch(
-              value: passphraseGenerator.includeNumbers,
-              onChanged: (bool value) {
-                passphraseGenerator.includeNumbers = value;
-                _regenerate();
-              },
+    );
+  }
+
+  Widget _renderSwitch(
+      {required String title,
+      required bool value,
+      required Function(bool onChangeValue) onChanged}) {
+    return _GreyBackground(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 16.0),
             ),
-          ],
-        ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+          ),
+        ],
       ),
-      Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            const Expanded(child: Text('Capitalize each word: ')),
-            Switch(
-              value: passphraseGenerator.shouldCapitalize,
-              onChanged: (bool value) {
-                passphraseGenerator.shouldCapitalize = value;
-                _regenerate();
-              },
+    );
+  }
+
+  Widget renderPasswordGeneratorFields() {
+    return Column(
+      children: [
+        // Slider component-
+        Container(
+          padding: const EdgeInsets.only(top: 10.0),
+          margin: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'LENGTH: $length',
+                style: const TextStyle(
+                  fontSize: 16.0,
+                ),
+              ),
+              _GreyBackground(
+                verticalMargin: 15.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Text('8'),
+                      flex: 5,
+                    ),
+                    Expanded(
+                      child: Slider(
+                        label: '5',
+                        value: length.toDouble(),
+                        min: 8,
+                        max: 50,
+                        divisions: 50 - 8 - 1,
+                        onChanged: _onLengthChange,
+                      ),
+                      flex: 150,
+                    ),
+                    const Expanded(
+                      child: Text('50'),
+                      flex: 10,
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+
+        Divider(
+          color: Colors.grey.shade400,
+        ),
+
+        // All settings components-
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 15.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 15.0),
+                child: const Text(
+                  'SETTINGS',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+
+              // Include lower case switch component-
+              _renderSwitch(
+                title: 'Include lowercase letters',
+                value: passwordGenerator.addLowercaseLetters,
+                onChanged: (bool value) {
+                  passwordGenerator.addLowercaseLetters = value;
+                  _regenerate();
+                },
+              ),
+
+              // Include upper case switch component-
+              _renderSwitch(
+                title: 'Include uppercase letters',
+                value: passwordGenerator.addUppercaseLetters,
+                onChanged: (bool value) {
+                  passwordGenerator.addUppercaseLetters = value;
+                  _regenerate();
+                },
+              ),
+
+              // Minimum no. of special characters component-
+              _renderNumericRow(
+                title: 'Special characters',
+                number: passwordGenerator.minSpecialChars.toString(),
+                canDecrement: canDecrementSpecialChar,
+                canIncrement: canIncrementSpecialChar,
+                onDecrement: onSpecialCharDecrement,
+                onIncrement: onSpecialCharIncrement,
+              ),
+
+              // Minimum no. of numbers component-
+              _renderNumericRow(
+                title: 'Minimum numbers',
+                number: passwordGenerator.minNumbers.toString(),
+                canDecrement: canDecrementNumber,
+                canIncrement: canIncrementNumber,
+                onDecrement: onNumberDecrement,
+                onIncrement: onNumberIncrement,
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool canIncrementWordCount() => passphraseGenerator.wordCount < 16;
+
+  bool canDecrementWordCount() => passphraseGenerator.wordCount > 3;
+
+  void onWordCountIncrement() {
+    ++passphraseGenerator.wordCount;
+    _regenerate();
+  }
+
+  void onWordCountDecrement() {
+    --passphraseGenerator.wordCount;
+    _regenerate();
+  }
+
+  Widget renderPassphraseGeneratorFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 15.0),
+          child: const Text(
+            'SETTINGS',
+            style: TextStyle(
+              fontSize: 16.0,
             ),
-          ],
+          ),
         ),
-      ),
-    ]);
+        _renderNumericRow(
+          title: 'Word Count',
+          number: passphraseGenerator.wordCount.toString(),
+          canDecrement: canDecrementWordCount,
+          canIncrement: canIncrementWordCount,
+          onDecrement: onWordCountDecrement,
+          onIncrement: onWordCountIncrement,
+        ),
+        _renderSwitch(
+          title: 'Include numbers',
+          value: passphraseGenerator.includeNumbers,
+          onChanged: (bool value) {
+            passphraseGenerator.includeNumbers = value;
+            _regenerate();
+          },
+        ),
+        _renderSwitch(
+          title: 'Capitalize',
+          value: passphraseGenerator.shouldCapitalize,
+          onChanged: (bool value) {
+            passphraseGenerator.shouldCapitalize = value;
+            _regenerate();
+          },
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: const Text(
           'Generate',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(
+            color: Colors.black,
+          ),
         ),
+        actions: [
+          IconButton(
+            onPressed: _regenerate,
+            icon: const Icon(
+              Icons.autorenew_outlined,
+              color: Colors.black,
+            ),
+          )
+        ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 10.0,
+            horizontal: 20.0,
+          ),
+          child: Column(
+            children: [
+              // 1st-
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(child: Text(generatedValue)),
-                  Row(
-                    children: [
-                      IconButton(
-                          onPressed: _regenerate,
-                          icon: const Icon(Icons.autorenew_outlined)),
-                      IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.content_copy_outlined)),
-                    ],
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text(
+                      'CLICK TO COPY PASSWORD',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    child: _GreyBackground(
+                      verticalPadding: 15.0,
+                      child: Text(
+                        generatedValue,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 18.0),
+                      ),
+                    ),
+                    onTap: () => _copyToClipBoard(generatedValue),
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 20, 10),
-              child: DropdownButtonHideUnderline(
+
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 15.0),
                 child: DropdownButton<GenerateType>(
                   isExpanded: true,
                   items: const <DropdownMenuItem<GenerateType>>[
@@ -345,11 +507,11 @@ class _GenerateState extends State<Generate> {
                   value: generateType,
                 ),
               ),
-            ),
-            generateType == GenerateType.password
-                ? renderPasswordGeneratorFields(size)
-                : renderPassphraseGeneratorFields(size),
-          ],
+              generateType == GenerateType.password
+                  ? renderPasswordGeneratorFields()
+                  : renderPassphraseGeneratorFields(),
+            ],
+          ),
         ),
       ),
     );
