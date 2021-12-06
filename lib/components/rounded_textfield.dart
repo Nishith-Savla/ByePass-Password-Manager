@@ -24,6 +24,7 @@ class RoundedTextFormField extends StatelessWidget {
   final String tooltipMessage;
 
   final JustTheController? tooltipController;
+  final TextEditingController? controller;
 
   const RoundedTextFormField({
     Key? key,
@@ -42,6 +43,7 @@ class RoundedTextFormField extends StatelessWidget {
     this.autofillHints,
     this.onSaved,
     this.validator,
+    this.controller,
     this.autofocus = false,
     this.obscureText = false,
     this.tooltipMessage = "",
@@ -52,6 +54,7 @@ class RoundedTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFieldContainer(
       child: TextFormField(
+        controller: controller,
         onChanged: onChanged,
         cursorColor: purpleMaterialColor,
         obscureText: obscureText,

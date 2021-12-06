@@ -3,6 +3,7 @@ import 'package:password_manager/constants.dart';
 
 class TextFieldContainer extends StatelessWidget {
   final Widget child;
+
   const TextFieldContainer({
     Key? key,
     required this.child,

@@ -17,3 +17,5 @@ const purpleMaterialColor = MaterialColor(0xFFA633FF, {
   800: Color.fromRGBO(166, 51, 255, .9),
   900: Color.fromRGBO(166, 51, 255, 1),
 });
+
+const Color darkBlueishColor = Color(0xff403b58);
