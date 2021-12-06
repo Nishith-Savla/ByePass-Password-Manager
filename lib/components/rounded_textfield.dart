@@ -22,9 +22,11 @@ class RoundedTextFormField extends StatelessWidget {
   final bool obscureText;
   final FocusNode? focusNode;
   final String tooltipMessage;
-
   final JustTheController? tooltipController;
+
   final TextEditingController? controller;
+  final String? initialValue;
+
   final double horizontalPadding;
   final double verticalPadding;
   final double horizontalMargin;
@@ -47,6 +49,7 @@ class RoundedTextFormField extends StatelessWidget {
     this.autofillHints,
     this.onSaved,
     this.validator,
+    this.initialValue,
     this.controller,
     this.autofocus = false,
     this.obscureText = false,
@@ -66,7 +69,6 @@ class RoundedTextFormField extends StatelessWidget {
       horizontalPadding: horizontalPadding,
       verticalPadding: verticalPadding,
       child: TextFormField(
-        controller: controller,
         onChanged: onChanged,
         cursorColor: purpleMaterialColor,
         obscureText: obscureText,
@@ -107,6 +109,8 @@ class RoundedTextFormField extends StatelessWidget {
         autofocus: autofocus,
         style: style,
         readOnly: disabled,
+        initialValue: initialValue,
+        controller: controller,
       ),
     );
   }
