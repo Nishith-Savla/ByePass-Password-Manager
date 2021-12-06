@@ -12,7 +12,3 @@ Uint8List generateKey(password, pepper, createdAt) {
           .bytes;
   return ekey;
 }
-
-void main() {
-  generateKey('password', 'pepper', DateTime.now());
-}
