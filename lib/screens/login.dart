@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:just_the_tooltip/just_the_tooltip.dart'
+    show JustTheController, TooltipStatus;
 import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
@@ -14,12 +16,18 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
+
   String _email = "";
   String _password = "";
+
   bool _isPasswordVisible = false;
   bool _isPasswordFocused = false;
+
   String _emailErrorMessage = "";
   String _passwordErrorMessage = "";
+
+  final _emailErrorController = JustTheController();
+  final _passwordErrorController = JustTheController();
 
   bool _validate() {
     if (_formKey.currentState!.validate()) {
@@ -27,6 +35,13 @@ class _LoginState extends State<Login> {
       debugPrint(_email);
       debugPrint(_password);
       return true;
+    }
+
+    if (_emailErrorMessage.isNotEmpty) {
+      _emailErrorController.showTooltip();
+    }
+    if (_passwordErrorMessage.isNotEmpty) {
+      _passwordErrorController.showTooltip();
     }
     return false;
   }
@@ -80,7 +95,9 @@ class _LoginState extends State<Login> {
                         keyboardType: TextInputType.emailAddress,
                         labelText: "Enter email address",
                         autofillHints: const [AutofillHints.email],
-                        icon: Icons.email,
+                        icon: Icons.email_outlined,
+                        tooltipMessage: _emailErrorMessage,
+                        tooltipController: _emailErrorController,
                         validator: (email) {
                           WidgetsBinding.instance!.addPostFrameCallback(
                             (_) => setState(() => _emailErrorMessage =
@@ -89,14 +106,14 @@ class _LoginState extends State<Login> {
                                     : 'Email cannot be empty'),
                           );
                         },
-                        onSaved: (email) => _email = email!,
+                        onChanged: (email) {
+                          if (_emailErrorController.value ==
+                              TooltipStatus.isShowing) {
+                            _emailErrorController.hideTooltip();
+                          }
+                          _email = email!;
+                        },
                       ),
-                      _emailErrorMessage.isNotEmpty
-                          ? Text(
-                              _emailErrorMessage,
-                              style: const TextStyle(color: Colors.red),
-                            )
-                          : Container(),
                     ],
                   ),
                 ),
@@ -105,10 +122,14 @@ class _LoginState extends State<Login> {
                   child: Column(
                     children: [
                       Focus(
+                        onFocusChange: (hasFocus) =>
+                            setState(() => _isPasswordFocused = hasFocus),
                         child: RoundedTextFormField(
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           labelText: "Enter password",
-                          icon: Icons.lock,
+                          icon: Icons.lock_outlined,
+                          tooltipMessage: _passwordErrorMessage,
+                          tooltipController: _passwordErrorController,
                           obscureText: _isPasswordVisible,
                           keyboardType: TextInputType.visiblePassword,
                           autofillHints: const [AutofillHints.password],
@@ -134,19 +155,15 @@ class _LoginState extends State<Login> {
                                       : 'Password cannot be empty'),
                             );
                           },
-                          onSaved: (password) => _password = password!,
+                          onChanged: (password) {
+                            if (_passwordErrorController.value ==
+                                TooltipStatus.isShowing) {
+                              _passwordErrorController.hideTooltip();
+                            }
+                            _password = password!;
+                          },
                         ),
-                        onFocusChange: (hasFocus) =>
-                            setState(() => _isPasswordFocused = hasFocus),
                       ),
-                      _passwordErrorMessage.isNotEmpty
-                          ? Text(
-                              _passwordErrorMessage,
-                              style: const TextStyle(
-                                color: Colors.red,
-                              ),
-                            )
-                          : Container(),
                     ],
                   ),
                 ),
