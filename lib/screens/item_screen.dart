@@ -28,13 +28,38 @@ class _ItemScreenState extends State<ItemScreen> {
   late bool isEditable;
   late bool isPasswordVisible;
 
-  final passwordController = TextEditingController(text: '        ');
+  late final TextEditingController nameController;
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+  late final TextEditingController uriController;
 
   @override
   void initState() {
     super.initState();
     isPasswordVisible = false;
     isEditable = widget.isEditable;
+    nameController = TextEditingController(text: widget.passwordEntry.name);
+
+    emailController = TextEditingController(text: widget.passwordEntry.email);
+
+    passwordController = TextEditingController(text: '        ');
+
+    uriController =
+        TextEditingController(text: widget.passwordEntry.uri.toString());
+  }
+
+  void _onSave() {
+    if (nameController.text != widget.passwordEntry.name) {
+      widget.passwordEntry.name = nameController.text;
+    }
+    if (emailController.text != widget.passwordEntry.email) {
+      widget.passwordEntry.email = emailController.text;
+    }
+    if (uriController.text != widget.passwordEntry.uri.toString()) {
+      widget.passwordEntry.uri = Uri.parse(uriController.text);
+    }
+    // TODO: set password
+    widget.passwordEntry.setPassword(passwordController.text, '');
   }
 
   @override
@@ -48,6 +73,10 @@ class _ItemScreenState extends State<ItemScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.check_outlined), onPressed: _onSave),
+        ],
       ),
       body: Center(
         child: Column(
@@ -62,7 +91,7 @@ class _ItemScreenState extends State<ItemScreen> {
             ),
             RoundedTextFormField(
               labelText: 'Name',
-              initialValue: widget.passwordEntry.name,
+              controller: nameController,
               icon: Icons.language_outlined,
               disabled: !isEditable,
               focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
@@ -70,7 +99,7 @@ class _ItemScreenState extends State<ItemScreen> {
             SizedBox(height: size.height * 0.015),
             RoundedTextFormField(
               labelText: 'Username',
-              initialValue: widget.passwordEntry.email,
+              controller: emailController,
               icon: Icons.person_outlined,
               disabled: !isEditable,
               focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
@@ -130,7 +159,7 @@ class _ItemScreenState extends State<ItemScreen> {
             RoundedTextFormField(
               focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
               labelText: 'Website',
-              initialValue: widget.passwordEntry.uri.toString(),
+              controller: uriController,
               icon: Icons.link_outlined,
               disabled: !isEditable,
               suffixIcon: Row(
