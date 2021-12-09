@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:password_manager/models/password_entry.dart';
 import 'package:flutter/services.dart';
+import 'package:password_manager/models/password_entry.dart';
+import 'package:password_manager/utils.dart';
 
 class PasswordWidget extends StatelessWidget {
   final PasswordEntry entry;
@@ -80,7 +81,7 @@ class PasswordWidget extends StatelessWidget {
                 builder: (context) {
                   return Container(
                     padding: const EdgeInsets.all(10.0),
-                    height: 300.0,
+                    height: 330.0,
                     child: Column(
                       children: [
                         ListTile(
@@ -118,10 +119,13 @@ class PasswordWidget extends StatelessWidget {
                         itemInfoModal(
                           Icons.copy_outlined,
                           "Copy password",
-                          () {
+                          () async {
                             copyToClipboard(
                               context,
-                              faviconPath,
+                              entry.getPassword(generateKey(
+                                  await getMasterPassword(),
+                                  pepper,
+                                  entry.createdAt)),
                               "Password",
                             );
                           },
@@ -136,6 +140,11 @@ class PasswordWidget extends StatelessWidget {
                           "Edit",
                           () {},
                         ),
+                        itemInfoModal(
+                          Icons.delete_outline,
+                          "Delete",
+                          () {},
+                        )
                       ],
                     ),
                   );
