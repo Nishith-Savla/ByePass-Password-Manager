@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 Uint8List generateKey(password, pepper, createdAt) {
   final key = utf8.encode(password + pepper + createdAt.toString());
@@ -13,6 +14,24 @@ Uint8List generateKey(password, pepper, createdAt) {
   return ekey;
 }
 
-void main() {
-  generateKey('password', 'pepper', DateTime.now());
-}
+// Local storage
+
+const _storage = FlutterSecureStorage();
+
+Future<String?> readFromStorage(String key) async =>
+    await _storage.read(key: key, aOptions: _getAndroidOptions());
+
+Future<void> writeToStorage(String key, String value) async => await _storage
+    .write(key: key, value: value, aOptions: _getAndroidOptions());
+
+AndroidOptions _getAndroidOptions() => const AndroidOptions(
+      encryptedSharedPreferences: true,
+    );
+
+// Master password
+
+Future<String> getMasterPassword() async =>
+    await readFromStorage('byepass') ?? '';
+
+Future<void> setMasterPassword(String password) async =>
+    await writeToStorage('byepass', password);
