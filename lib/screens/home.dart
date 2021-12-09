@@ -39,11 +39,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<Widget> _buildListItem(
       BuildContext context, DocumentSnapshot snapshot) async {
-    final passwordEntry = PasswordEntry.fromSnapshot(snapshot,
-        key: generateKey(
-            await getMasterPassword().then((String value) => value),
-            dotenv.env['PEPPER']!,
-            (snapshot.data() as Map<String, dynamic>)['createdAt']));
+    final passwordEntry = PasswordEntry.fromSnapshot(
+      snapshot,
+      key: generateKey(await getMasterPassword(), dotenv.env['PEPPER']!,
+          (snapshot.data() as Map<String, dynamic>)['createdAt']),
+    );
     return PasswordWidget(entry: passwordEntry);
   }
 
