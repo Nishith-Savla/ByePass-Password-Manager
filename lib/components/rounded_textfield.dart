@@ -25,6 +25,10 @@ class RoundedTextFormField extends StatelessWidget {
 
   final JustTheController? tooltipController;
   final TextEditingController? controller;
+  final double horizontalPadding;
+  final double verticalPadding;
+  final double horizontalMargin;
+  final double verticalMargin;
 
   const RoundedTextFormField({
     Key? key,
@@ -48,11 +52,19 @@ class RoundedTextFormField extends StatelessWidget {
     this.obscureText = false,
     this.tooltipMessage = "",
     this.disabled = false,
+    this.horizontalPadding = 20.0,
+    this.verticalPadding = 1.0,
+    this.horizontalMargin = 0.0,
+    this.verticalMargin = 10.0,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextFieldContainer(
+      horizontalMargin: horizontalMargin,
+      verticalMargin: verticalMargin,
+      horizontalPadding: horizontalPadding,
+      verticalPadding: verticalPadding,
       child: TextFormField(
         controller: controller,
         onChanged: onChanged,

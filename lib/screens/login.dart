@@ -6,6 +6,7 @@ import 'package:password_manager/components/background.dart';
 import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/firebase/authentication.dart';
+import 'package:password_manager/utils.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -55,6 +56,8 @@ class _LoginState extends State<Login> {
     if (error != null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));
+    } else {
+      await setMasterPassword(_password);
     }
   }
 

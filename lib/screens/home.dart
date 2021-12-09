@@ -23,25 +23,33 @@ class _HomePageState extends State<HomePage> {
   final repository = DataRepository();
 
   Widget _buildList(BuildContext context, List<DocumentSnapshot>? snapshot) {
-    return ListView(
-      padding: const EdgeInsets.only(top: 20.0),
-      children: snapshot!.map((data) => _buildListItem(context, data)).toList(),
+    return FutureBuilder(
+      future: Future.wait(snapshot!
+          .map((data) async => await _buildListItem(context, data))
+          .toList()),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const CircularProgressIndicator();
+        return ListView(
+          padding: const EdgeInsets.only(top: 20.0),
+          children: snapshot.data as List<Widget>,
+        );
+      },
     );
   }
 
-  Widget _buildListItem(BuildContext context, DocumentSnapshot snapshot) {
-    debugPrint(snapshot.toString());
+  Future<Widget> _buildListItem(
+      BuildContext context, DocumentSnapshot snapshot) async {
     final passwordEntry = PasswordEntry.fromSnapshot(snapshot,
-        key: generateKey("fdajflakfjd", dotenv.env['PEPPER']!,
+        key: generateKey(
+            await getMasterPassword().then((String value) => value),
+            dotenv.env['PEPPER']!,
             (snapshot.data() as Map<String, dynamic>)['createdAt']));
-
     return PasswordWidget(entry: passwordEntry);
   }
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    debugPrint(size.toString());
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -76,12 +84,12 @@ class _HomePageState extends State<HomePage> {
           height: size.height * 0.585,
           width: double.infinity,
           child: StreamBuilder(
-              stream: repository.getStream(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                debugPrint(snapshot.toString());
-                if (!snapshot.hasData) return const LinearProgressIndicator();
-                return _buildList(context, snapshot.data?.docs ?? []);
-              }),
+            stream: repository.getStream(),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (!snapshot.hasData) return const LinearProgressIndicator();
+              return _buildList(context, snapshot.data?.docs ?? []);
+            },
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(

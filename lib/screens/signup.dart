@@ -7,6 +7,7 @@ import 'package:password_manager/components/rounded_button.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart' show emailRegex, nameRegex;
 import 'package:password_manager/firebase/authentication.dart';
+import 'package:password_manager/utils.dart';
 
 class Signup extends StatefulWidget {
   const Signup({Key? key}) : super(key: key);
@@ -135,6 +136,7 @@ class _SignupState extends State<Signup> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Sign up successful')));
       auth.verifyCurrentUser();
+      setMasterPassword(_password);
     }
   }
 
