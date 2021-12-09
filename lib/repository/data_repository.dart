@@ -1,10 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:password_manager/models/password_entry.dart';
 
 class DataRepository {
   late final CollectionReference collection;
-  DataRepository({String collectionName = "entries"}) {
-    collection = FirebaseFirestore.instance.collection(collectionName);
+
+  DataRepository(
+      {String collection = "users", String subCollection = "Default"}) {
+    this.collection = FirebaseFirestore.instance
+        .collection(collection)
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('Default');
   }
 
   Stream<QuerySnapshot> getStream() {
