@@ -56,6 +56,7 @@ class _LoginState extends State<Login> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));
     }
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override

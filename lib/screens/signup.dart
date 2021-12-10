@@ -135,6 +135,7 @@ class _SignupState extends State<Signup> {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Sign up successful')));
       auth.verifyCurrentUser();
+      Navigator.pushReplacementNamed(context, '/verifyEmail');
     }
   }
 
