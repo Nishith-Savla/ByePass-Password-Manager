@@ -62,6 +62,13 @@ class _ItemScreenState extends State<ItemScreen> {
   late final TextEditingController passwordController;
   late final TextEditingController uriController;
 
+  void _resetTextFields() {
+    nameController.text = widget.passwordEntry.name;
+    emailController.text = widget.passwordEntry.email;
+    passwordController.text = '        ';
+    uriController.text = widget.passwordEntry.uri.toString();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -256,10 +263,12 @@ class _ItemScreenState extends State<ItemScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
         backgroundColor: purpleMaterialColor,
-        onPressed: () => setState(() => isEditable = !isEditable),
-        child: const Icon(Icons.edit_outlined),
+        onPressed: () {
+          setState(() => isEditable = !isEditable);
+          if (!isEditable) _resetTextFields();
+        },
+        child: Icon(isEditable ? Icons.clear : Icons.edit_outlined),
       ),
     );
   }
