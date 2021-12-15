@@ -1,7 +1,13 @@
+import 'dart:typed_data' show Uint8List;
+
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show FieldValue, Timestamp;
 import 'package:flutter/material.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart' show purpleMaterialColor;
 import 'package:password_manager/models/password_entry.dart';
+import 'package:password_manager/utils.dart'
+    show generateKey, getMasterPassword, pepper;
 
 class AlwaysDisabledFocusNode extends FocusNode {
   @override
@@ -10,15 +16,17 @@ class AlwaysDisabledFocusNode extends FocusNode {
 
 class ItemScreen extends StatefulWidget {
   final bool isEditable;
-  final String Function() onPasswordView;
+  final void Function(PasswordEntry) onSave;
+  final void Function(PasswordEntry) onDelete;
   final PasswordEntry passwordEntry;
 
-  const ItemScreen(
-      {Key? key,
-      required this.onPasswordView,
-      required this.isEditable,
-      required this.passwordEntry})
-      : super(key: key);
+  const ItemScreen({
+    Key? key,
+    required this.isEditable,
+    required this.passwordEntry,
+    required this.onSave,
+    required this.onDelete,
+  }) : super(key: key);
 
   @override
   State<ItemScreen> createState() => _ItemScreenState();
@@ -27,6 +35,7 @@ class ItemScreen extends StatefulWidget {
 class _ItemScreenState extends State<ItemScreen> {
   late bool isEditable;
   late bool isPasswordVisible;
+  late final Uint8List _key;
 
   late final TextEditingController nameController;
   late final TextEditingController emailController;
@@ -46,20 +55,40 @@ class _ItemScreenState extends State<ItemScreen> {
 
     uriController =
         TextEditingController(text: widget.passwordEntry.uri.toString());
+
+    () async {
+      _key = generateKey(
+          await getMasterPassword(), pepper, widget.passwordEntry.createdAt);
+    }();
   }
 
-  void _onSave() {
+  void _onSave() async {
+    bool updated = false;
     if (nameController.text != widget.passwordEntry.name) {
       widget.passwordEntry.name = nameController.text;
+      updated = true;
     }
     if (emailController.text != widget.passwordEntry.email) {
       widget.passwordEntry.email = emailController.text;
+      updated = true;
     }
     if (uriController.text != widget.passwordEntry.uri.toString()) {
       widget.passwordEntry.uri = Uri.parse(uriController.text);
+      updated = true;
     }
-    // TODO: set password
-    widget.passwordEntry.setPassword(passwordController.text, '');
+    if (widget.passwordEntry.getPassword(_key) != passwordController.text) {
+      widget.passwordEntry.setPassword(passwordController.text, _key);
+      updated = true;
+    }
+
+    if (updated) {
+      widget.passwordEntry.lastUpdated = Timestamp.now();
+      widget.onSave(widget.passwordEntry);
+    }
+  }
+
+  void _onDelete() {
+    widget.onDelete(widget.passwordEntry);
   }
 
   @override
@@ -67,123 +96,143 @@ class _ItemScreenState extends State<ItemScreen> {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "${isEditable ? 'Edit' : 'View'} item",
-          style: const TextStyle(color: Colors.black),
-        ),
+        title: Text("${isEditable ? 'Edit' : 'View'} item"),
+        foregroundColor: Colors.black,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(
-              icon: const Icon(Icons.check_outlined), onPressed: _onSave),
+          isEditable
+              ? IconButton(
+                  icon: const Icon(Icons.check_outlined),
+                  onPressed: _onSave,
+                )
+              : IconButton(
+                  icon: const Icon(Icons.delete_outlined),
+                  onPressed: _onDelete),
         ],
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.only(top: 20, left: 30),
-              child: const Text(
-                'Item Information',
-                style: TextStyle(fontSize: 16),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.only(top: 20, left: 30),
+                child: const Text(
+                  'Item Information',
+                  style: TextStyle(fontSize: 16),
+                ),
+                alignment: Alignment.centerLeft,
               ),
-              alignment: Alignment.centerLeft,
-            ),
-            RoundedTextFormField(
-              labelText: 'Name',
-              controller: nameController,
-              icon: Icons.language_outlined,
-              disabled: !isEditable,
-              focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
-            ),
-            SizedBox(height: size.height * 0.015),
-            RoundedTextFormField(
-              labelText: 'Username',
-              controller: emailController,
-              icon: Icons.person_outlined,
-              disabled: !isEditable,
-              focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(left: 25.0),
-                child: InkWell(
-                  onTap: () {},
-                  child: const Icon(Icons.content_copy_outlined),
+              RoundedTextFormField(
+                labelText: 'Name',
+                controller: nameController,
+                icon: Icons.language_outlined,
+                disabled: !isEditable,
+                focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
+              ),
+              SizedBox(height: size.height * 0.015),
+              RoundedTextFormField(
+                labelText: 'Username',
+                controller: emailController,
+                icon: Icons.person_outlined,
+                disabled: !isEditable,
+                focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
+                suffixIcon: IconButton(
+                  icon: const Icon(
+                    Icons.content_copy_outlined,
+                    size: 20,
+                  ),
+                  padding: const EdgeInsets.only(left: 16),
+                  constraints: const BoxConstraints(),
+                  onPressed: () {},
                 ),
               ),
-            ),
-            SizedBox(height: size.height * 0.015),
-            RoundedTextFormField(
-              labelText: 'Password',
-              controller: passwordController,
-              obscureText: !isPasswordVisible,
-              icon: Icons.lock_outlined,
-              disabled: !isEditable,
-              focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
-              suffixIcon: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(right: 5.0),
-                    child: InkWell(
-                      onTap: () {},
-                      child: const Icon(Icons.content_copy_outlined),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: InkWell(
-                      child: Icon(isPasswordVisible
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
-                      onTap: () {
+              SizedBox(height: size.height * 0.015),
+              RoundedTextFormField(
+                labelText: 'Password',
+                controller: passwordController,
+                obscureText: !isPasswordVisible,
+                icon: Icons.lock_outlined,
+                disabled: !isEditable,
+                focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
+                suffixIcon: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 20,
+                      ),
+                      padding: const EdgeInsets.only(right: 8),
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        // Using not as state is set later
+                        passwordController.text =
+                            !isPasswordVisible || isEditable
+                                ? widget.passwordEntry.getPassword(_key)
+                                : '        ';
                         setState(() => isPasswordVisible = !isPasswordVisible);
-                        passwordController.text = isPasswordVisible
-                            ? widget.onPasswordView()
-                            : '        ';
                       },
                     ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: size.height * 0.015),
-            Container(
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.only(top: 20, left: 30),
-              child: const Text(
-                "URIs",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            RoundedTextFormField(
-              focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
-              labelText: 'Website',
-              controller: uriController,
-              icon: Icons.link_outlined,
-              disabled: !isEditable,
-              suffixIcon: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(right: 5.0),
-                    child: InkWell(
-                      onTap: () {},
-                      child: const Icon(Icons.launch_outlined),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.content_copy_outlined,
+                        size: 20,
+                      ),
+                      padding: const EdgeInsets.only(left: 8),
+                      constraints: const BoxConstraints(),
+                      onPressed: () {},
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: InkWell(
-                      onTap: () {},
-                      child: const Icon(Icons.content_copy_outlined),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: size.height * 0.015),
+              Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(top: 20, left: 30),
+                child: const Text(
+                  "URIs",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              RoundedTextFormField(
+                focusNode: isEditable ? null : AlwaysDisabledFocusNode(),
+                labelText: 'Website',
+                controller: uriController,
+                icon: Icons.link_outlined,
+                disabled: !isEditable,
+                suffixIcon: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    IconButton(
+                      icon: const Icon(
+                        Icons.launch_outlined,
+                        size: 20,
+                      ),
+                      padding: const EdgeInsets.only(right: 8),
+                      constraints: const BoxConstraints(),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.content_copy_outlined,
+                        size: 20,
+                      ),
+                      padding: const EdgeInsets.only(left: 8),
+                      constraints: const BoxConstraints(),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
+              Text("Last updated: " +
+                  widget.passwordEntry.lastUpdated.toDate().toIso8601String()),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
