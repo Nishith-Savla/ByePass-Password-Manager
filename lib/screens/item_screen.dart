@@ -1,13 +1,13 @@
 import 'dart:typed_data' show Uint8List;
 
-import 'package:cloud_firestore/cloud_firestore.dart'
-    show FieldValue, Timestamp;
+import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:flutter/material.dart';
 import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart' show purpleMaterialColor;
 import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/utils.dart'
     show generateKey, getMasterPassword, pepper;
+import 'package:timeago/timeago.dart' as timeago show format;
 
 class AlwaysDisabledFocusNode extends FocusNode {
   @override
@@ -112,6 +112,8 @@ class _ItemScreenState extends State<ItemScreen> {
       widget.passwordEntry.lastUpdated = Timestamp.now();
       widget.onSave(widget.passwordEntry);
     }
+
+    setState(() => isEditable = false);
   }
 
   void _onDelete() {
@@ -256,8 +258,14 @@ class _ItemScreenState extends State<ItemScreen> {
                   ],
                 ),
               ),
-              Text("Last updated: " +
-                  widget.passwordEntry.lastUpdated.toDate().toIso8601String()),
+              if (!isEditable)
+                Container(
+                  padding: const EdgeInsets.only(left: 30, top: 10),
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                      "Last updated: ${timeago.format(widget.passwordEntry.lastUpdated.toDate())}",
+                      style: Theme.of(context).textTheme.overline),
+                ),
             ],
           ),
         ),

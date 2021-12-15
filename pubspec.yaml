@@ -43,6 +43,7 @@ dependencies:
   just_the_tooltip: ^0.0.10
   crypto: ^3.0.1
   flutter_secure_storage: ^5.0.2
+  timeago: ^3.1.0
 
 dev_dependencies:
   flutter_test:
