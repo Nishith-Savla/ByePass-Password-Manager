@@ -6,8 +6,10 @@ import 'package:password_manager/utils.dart';
 class PasswordWidget extends StatelessWidget {
   final PasswordEntry entry;
   late final String faviconPath;
+  final VoidCallback onView;
 
-  PasswordWidget({Key? key, required this.entry}) : super(key: key) {
+  PasswordWidget({Key? key, required this.entry, required this.onView})
+      : super(key: key) {
     faviconPath = "${entry.uri.origin}/favicon.ico";
   }
 
@@ -51,7 +53,7 @@ class PasswordWidget extends StatelessWidget {
           dense: true,
           contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0),
           minLeadingWidth: 0.0,
-          onTap: () {},
+          onTap: onView,
           leading: Image.network(
             faviconPath,
             height: 30.0,

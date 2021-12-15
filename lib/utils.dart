@@ -26,9 +26,8 @@ Future<String?> readFromStorage(String key) async =>
 Future<void> writeToStorage(String key, String value) async => await _storage
     .write(key: key, value: value, aOptions: _getAndroidOptions());
 
-AndroidOptions _getAndroidOptions() => const AndroidOptions(
-      encryptedSharedPreferences: true,
-    );
+AndroidOptions _getAndroidOptions() =>
+    const AndroidOptions(encryptedSharedPreferences: true);
 
 // Master password
 

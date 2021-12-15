@@ -6,6 +6,7 @@ import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart';
 import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/repository/data_repository.dart';
+import 'package:password_manager/screens/item_screen.dart';
 import 'package:password_manager/utils.dart';
 
 class HomePage extends StatefulWidget {
@@ -44,7 +45,20 @@ class _HomePageState extends State<HomePage> {
       key: generateKey(await getMasterPassword(), dotenv.env['PEPPER']!,
           (snapshot.data() as Map<String, dynamic>)['createdAt']),
     );
-    return PasswordWidget(entry: passwordEntry);
+    return PasswordWidget(
+      entry: passwordEntry,
+      onView: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemScreen(
+            isEditable: false,
+            passwordEntry: passwordEntry,
+            onSave: repository.updateEntry,
+            onDelete: repository.deleteEntry,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -66,11 +80,7 @@ class _HomePageState extends State<HomePage> {
               Icons.close_outlined,
               color: showCrossIcon ? darkBlueishColor : Colors.transparent,
             ),
-            onPressed: showCrossIcon
-                ? () {
-                    _controller.clear();
-                  }
-                : null,
+            onPressed: showCrossIcon ? _controller.clear : null,
           ),
           color: darkBlueishColor,
           onChanged: (value) => setState(() {
