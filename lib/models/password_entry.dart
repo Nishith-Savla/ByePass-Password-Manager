@@ -9,13 +9,23 @@ class PasswordEntry {
       {required this.email,
       required this.createdAt,
       Timestamp? lastUpdated,
-      required String password,
+      String? password,
+      String? encryptedPassword,
+      String? iv,
       required String url,
       required Uint8List key,
       this.referenceId}) {
     uri = Uri.parse(url);
-    _iv = IV.fromLength(16);
-    _password = Encrypter(AES(Key(key))).encrypt(password, iv: _iv);
+
+    _iv = iv != null ? IV.fromBase64(iv) : IV.fromLength(16);
+
+    assert(password == null || encryptedPassword == null);
+    if (encryptedPassword != null) {
+      _password = Encrypted.fromBase64(encryptedPassword);
+    } else {
+      _password = Encrypter(AES(Key(key))).encrypt(password!, iv: _iv);
+    }
+
     this.lastUpdated = lastUpdated ?? createdAt;
   }
 
@@ -44,8 +54,9 @@ class PasswordEntry {
         email: json['email'] as String,
         createdAt: json['createdAt'] as Timestamp,
         lastUpdated: json['lastUpdated'] as Timestamp?,
-        password: json['password'] as String,
+        encryptedPassword: json['password'] as String,
         url: json['url'] as String,
+        iv: json['iv'] as String?,
         key: key,
       );
 
@@ -54,8 +65,9 @@ class PasswordEntry {
         'email': email,
         'createdAt': createdAt,
         'lastUpdated': lastUpdated,
-        'password': _password,
-        'url': uri,
+        'password': _password.base64,
+        'url': uri.toString(),
+        'iv': _iv.base64,
       };
 
   String getPassword(Uint8List key) {
