@@ -14,6 +14,16 @@ class AlwaysDisabledFocusNode extends FocusNode {
   bool get hasFocus => false;
 }
 
+class ItemScreenArguments {
+  final bool isEditable;
+  final void Function(PasswordEntry) onSave;
+  final void Function(PasswordEntry) onDelete;
+  final PasswordEntry passwordEntry;
+
+  ItemScreenArguments(
+      this.isEditable, this.onSave, this.onDelete, this.passwordEntry);
+}
+
 class ItemScreen extends StatefulWidget {
   final bool isEditable;
   final void Function(PasswordEntry) onSave;
@@ -27,6 +37,16 @@ class ItemScreen extends StatefulWidget {
     required this.onSave,
     required this.onDelete,
   }) : super(key: key);
+
+  factory ItemScreen.fromItemScreenArguments(
+      ItemScreenArguments itemScreenArguments) {
+    return ItemScreen(
+      isEditable: itemScreenArguments.isEditable,
+      passwordEntry: itemScreenArguments.passwordEntry,
+      onSave: itemScreenArguments.onSave,
+      onDelete: itemScreenArguments.onDelete,
+    );
+  }
 
   @override
   State<ItemScreen> createState() => _ItemScreenState();
