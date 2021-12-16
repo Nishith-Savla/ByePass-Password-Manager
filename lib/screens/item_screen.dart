@@ -6,7 +6,7 @@ import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart' show purpleMaterialColor;
 import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/utils.dart'
-    show generateKey, getMasterPassword, pepper;
+    show copyToClipboard, generateKey, getMasterPassword, pepper;
 import 'package:timeago/timeago.dart' as timeago show format;
 
 class AlwaysDisabledFocusNode extends FocusNode {
@@ -173,7 +173,11 @@ class _ItemScreenState extends State<ItemScreen> {
                   ),
                   padding: const EdgeInsets.only(left: 16),
                   constraints: const BoxConstraints(),
-                  onPressed: () {},
+                  onPressed: () => copyToClipboard(
+                    context: context,
+                    name: "Username",
+                    data: widget.passwordEntry.email,
+                  ),
                 ),
               ),
               SizedBox(height: size.height * 0.015),
@@ -213,7 +217,10 @@ class _ItemScreenState extends State<ItemScreen> {
                       ),
                       padding: const EdgeInsets.only(left: 8),
                       constraints: const BoxConstraints(),
-                      onPressed: () {},
+                      onPressed: () => copyToClipboard(
+                          context: context,
+                          name: "Password",
+                          data: widget.passwordEntry.getPassword(_key)),
                     ),
                   ],
                 ),
@@ -253,7 +260,11 @@ class _ItemScreenState extends State<ItemScreen> {
                       ),
                       padding: const EdgeInsets.only(left: 8),
                       constraints: const BoxConstraints(),
-                      onPressed: () {},
+                      onPressed: () => copyToClipboard(
+                          context: context,
+                          name: "Url",
+                          data: widget.passwordEntry.uri.toString(),
+                      ),
                     ),
                   ],
                 ),
