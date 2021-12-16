@@ -8,6 +8,8 @@ import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/repository/data_repository.dart';
 import 'package:password_manager/utils.dart';
 
+final repository = DataRepository();
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -17,10 +19,28 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedTabIndex = 0;
-  bool showCrossIcon = false;
+  bool isSearching = false;
+  late final List<PasswordWidget> entries;
+  late List<PasswordWidget> filteredEntries;
 
   final TextEditingController _controller = TextEditingController();
-  final repository = DataRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    entries = <PasswordWidget>[];
+    filteredEntries = <PasswordWidget>[];
+  }
+
+  void _search(String query) {
+    setState(() {
+      filteredEntries = entries
+          .where((element) =>
+              element.entry.name.contains(query) ||
+              element.entry.email.contains(query))
+          .toList(growable: false);
+    });
+  }
 
   Widget _buildList(BuildContext context, List<DocumentSnapshot>? snapshot) {
     return FutureBuilder(
@@ -31,7 +51,7 @@ class _HomePageState extends State<HomePage> {
         if (!snapshot.hasData) return const CircularProgressIndicator();
         return ListView(
           padding: const EdgeInsets.only(top: 20.0),
-          children: snapshot.data as List<Widget>,
+          children: isSearching ? filteredEntries : entries,
         );
       },
     );
@@ -44,7 +64,9 @@ class _HomePageState extends State<HomePage> {
             await getMasterPassword().then((String value) => value),
             dotenv.env['PEPPER']!,
             (snapshot.data() as Map<String, dynamic>)['createdAt']));
-    return PasswordWidget(entry: passwordEntry);
+    final widget = PasswordWidget(entry: passwordEntry);
+    if (!entries.contains(widget)) entries.add(widget);
+    return widget;
   }
 
   @override
@@ -61,21 +83,22 @@ class _HomePageState extends State<HomePage> {
           ),
           hintText: "Search password",
           icon: Icons.search_rounded,
-          suffixIcon: IconButton(
-            icon: Icon(
-              Icons.close_outlined,
-              color: showCrossIcon ? darkBlueishColor : Colors.transparent,
-            ),
-            onPressed: showCrossIcon
-                ? () {
+          suffixIcon: (isSearching)
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close_outlined,
+                    color: darkBlueishColor,
+                  ),
+                  onPressed: () {
                     _controller.clear();
-                  }
-                : null,
-          ),
+                    setState(() => isSearching = false);
+                  })
+              : null,
           color: darkBlueishColor,
-          onChanged: (value) => setState(() {
-            value.length > 0 ? showCrossIcon = true : showCrossIcon = false;
-          }),
+          onChanged: (value) {
+            _search(value);
+            setState(() => isSearching = value.isNotEmpty);
+          },
         ),
       ),
       body: Padding(
