@@ -59,6 +59,7 @@ class _LoginState extends State<Login> {
     } else {
       await setMasterPassword(_password);
     }
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override

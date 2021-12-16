@@ -98,9 +98,15 @@ class Authentication {
   }
 
   Future<void> verifyCurrentUser() async {
-    User? user = _firebaseAuth.currentUser;
-    await sendEmailVerification(user);
+    if (isEmailVerified()) {
+      User? user = _firebaseAuth.currentUser;
+      await sendEmailVerification(user);
+    }
   }
+
+  bool isUserLoggedIn() => _firebaseAuth.currentUser != null;
+
+  bool isEmailVerified() => _firebaseAuth.currentUser!.emailVerified;
 }
 
 class AuthenticationResult {

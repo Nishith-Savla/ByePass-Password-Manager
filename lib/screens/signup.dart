@@ -137,6 +137,7 @@ class _SignupState extends State<Signup> {
           .showSnackBar(const SnackBar(content: Text('Sign up successful')));
       auth.verifyCurrentUser();
       setMasterPassword(_password);
+      Navigator.pushReplacementNamed(context, '/verifyEmail');
     }
   }
 
