@@ -10,6 +10,8 @@ import 'package:password_manager/screens/generate.dart';
 import 'package:password_manager/screens/item_screen.dart';
 import 'package:password_manager/utils.dart';
 
+final repository = DataRepository();
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -19,10 +21,28 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int selectedTabIndex = 0;
-  bool showCrossIcon = false;
+  bool isSearching = false;
+  late final List<PasswordWidget> entries;
+  late List<PasswordWidget> filteredEntries;
 
   final TextEditingController _controller = TextEditingController();
-  final repository = DataRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    entries = <PasswordWidget>[];
+    filteredEntries = <PasswordWidget>[];
+  }
+
+  void _search(String query) {
+    setState(() {
+      filteredEntries = entries
+          .where((element) =>
+              element.entry.name.contains(query) ||
+              element.entry.email.contains(query))
+          .toList(growable: false);
+    });
+  }
 
   Widget _buildList(BuildContext context, List<DocumentSnapshot>? snapshot) {
     return FutureBuilder(
@@ -33,7 +53,7 @@ class _HomePageState extends State<HomePage> {
         if (!snapshot.hasData) return const CircularProgressIndicator();
         return ListView(
           padding: const EdgeInsets.only(top: 20.0),
-          children: snapshot.data as List<Widget>,
+          children: isSearching ? filteredEntries : entries,
         );
       },
     );
@@ -43,10 +63,13 @@ class _HomePageState extends State<HomePage> {
       BuildContext context, DocumentSnapshot snapshot) async {
     final passwordEntry = PasswordEntry.fromSnapshot(
       snapshot,
-      key: generateKey(await getMasterPassword(), dotenv.env['PEPPER']!,
-          (snapshot.data() as Map<String, dynamic>)['createdAt']),
+      key: generateKey(
+        await getMasterPassword(),
+        dotenv.env['PEPPER']!,
+        (snapshot.data() as Map<String, dynamic>)['createdAt'],
+      ),
     );
-    return PasswordWidget(
+    final widget = PasswordWidget(
       entry: passwordEntry,
       onView: () => Navigator.push(
         context,
@@ -60,6 +83,8 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    if (!entries.contains(widget)) entries.add(widget);
+    return widget;
   }
 
   @override
@@ -95,17 +120,23 @@ class _HomePageState extends State<HomePage> {
           ),
           hintText: "Search password",
           icon: Icons.search_rounded,
-          suffixIcon: IconButton(
-            icon: Icon(
-              Icons.close_outlined,
-              color: showCrossIcon ? darkBlueishColor : Colors.transparent,
-            ),
-            onPressed: showCrossIcon ? _controller.clear : null,
-          ),
+          suffixIcon: isSearching
+              ? IconButton(
+                  icon: const Icon(
+                    Icons.close_outlined,
+                    color: darkBlueishColor,
+                  ),
+                  onPressed: () {
+                    _controller.clear();
+                    setState(() => isSearching = false);
+                  },
+                )
+              : null,
           color: darkBlueishColor,
-          onChanged: (value) => setState(() {
-            value.length > 0 ? showCrossIcon = true : showCrossIcon = false;
-          }),
+          onChanged: (value) {
+            _search(value);
+            setState(() => isSearching = value.isNotEmpty);
+          },
         ),
       ),
       body: homeBody[selectedTabIndex],

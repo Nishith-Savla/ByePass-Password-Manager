@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart'
     show DocumentSnapshot, Timestamp;
 import 'package:encrypt/encrypt.dart';
+import 'package:flutter/material.dart' show hashValues;
 
 class PasswordEntry {
   PasswordEntry(this.name,
@@ -79,5 +80,17 @@ class PasswordEntry {
   }
 
   @override
+  bool operator ==(Object other) {
+    return other is PasswordEntry &&
+        other.name == name &&
+        other.createdAt == createdAt &&
+        other.email == email &&
+        other.uri == uri;
+  }
+
+  @override
   String toString() => "PasswordEntry<$name>";
+
+  @override
+  int get hashCode => hashValues(name, email, uri, createdAt);
 }

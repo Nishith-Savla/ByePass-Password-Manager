@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:password_manager/constants.dart' show darkBlueishColor;
 import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/utils.dart';
 
@@ -11,6 +12,34 @@ class PasswordWidget extends StatelessWidget {
   PasswordWidget({Key? key, required this.entry, required this.onView})
       : super(key: key) {
     faviconPath = "${entry.uri.origin}/favicon.ico";
+  }
+
+  @override
+  int get hashCode => hashValues(entry, faviconPath);
+
+  @override
+  bool operator ==(Object other) {
+    return other is PasswordWidget &&
+        other.entry == entry &&
+        other.faviconPath == faviconPath;
+  }
+
+  Widget _getIcon() {
+    return CircleAvatar(
+      backgroundColor: Colors.transparent,
+      foregroundColor: darkBlueishColor,
+      radius: 15,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(25.0),
+        child: Image.network(
+          faviconPath,
+          errorBuilder: (_, __, ___) => const Icon(Icons.language, size: 30),
+          height: 30,
+          width: 30,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
   }
 
   ListTile itemInfoModal(IconData icon, String title, VoidCallback fun) {
@@ -54,11 +83,7 @@ class PasswordWidget extends StatelessWidget {
           contentPadding: const EdgeInsets.only(left: 0.0, right: 0.0),
           minLeadingWidth: 0.0,
           onTap: onView,
-          leading: Image.network(
-            faviconPath,
-            height: 30.0,
-            width: 30.0,
-          ),
+          leading: _getIcon(),
           title: Text(
             entry.name,
             style: const TextStyle(
@@ -88,11 +113,7 @@ class PasswordWidget extends StatelessWidget {
                       children: [
                         ListTile(
                           dense: true,
-                          leading: Image.network(
-                            faviconPath,
-                            height: 30.0,
-                            width: 30.0,
-                          ),
+                          leading: _getIcon(),
                           title: Text(
                             entry.name,
                             style: const TextStyle(fontSize: 18.0),
