@@ -7,6 +7,16 @@ class PasswordWidget extends StatelessWidget {
   final PasswordEntry entry;
   late final String faviconPath;
 
+  @override
+  int get hashCode => hashValues(entry, faviconPath);
+
+  @override
+  bool operator ==(Object other) {
+    return other is PasswordWidget &&
+        other.entry == entry &&
+        other.faviconPath == faviconPath;
+  }
+
   PasswordWidget({Key? key, required this.entry}) : super(key: key) {
     faviconPath = "${entry.uri.origin}/favicon.ico";
   }
