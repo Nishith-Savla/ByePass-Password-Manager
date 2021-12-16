@@ -6,6 +6,7 @@ import 'package:password_manager/components/rounded_textfield.dart';
 import 'package:password_manager/constants.dart';
 import 'package:password_manager/models/password_entry.dart';
 import 'package:password_manager/repository/data_repository.dart';
+import 'package:password_manager/screens/generate.dart';
 import 'package:password_manager/utils.dart';
 
 class HomePage extends StatefulWidget {
@@ -42,6 +43,24 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     debugPrint(size.toString());
+    final homeBody = [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+        child: SizedBox(
+          height: size.height * 0.585,
+          width: double.infinity,
+          child: StreamBuilder(
+              stream: repository.getStream(),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                debugPrint(snapshot.toString());
+                if (!snapshot.hasData) return const LinearProgressIndicator();
+                return _buildList(context, snapshot.data?.docs ?? []);
+              }),
+        ),
+      ),
+      const Generate(generateType: GenerateType.password),
+      const Icon(Icons.admin_panel_settings_outlined),
+    ];
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -70,20 +89,7 @@ class _HomePageState extends State<HomePage> {
           }),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-        child: SizedBox(
-          height: size.height * 0.585,
-          width: double.infinity,
-          child: StreamBuilder(
-              stream: repository.getStream(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                debugPrint(snapshot.toString());
-                if (!snapshot.hasData) return const LinearProgressIndicator();
-                return _buildList(context, snapshot.data?.docs ?? []);
-              }),
-        ),
-      ),
+      body: homeBody[selectedTabIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
