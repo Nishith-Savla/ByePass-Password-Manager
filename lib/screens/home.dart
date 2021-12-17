@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:password_manager/components/password_widget.dart';
@@ -27,11 +28,19 @@ class _HomePageState extends State<HomePage> {
 
   final TextEditingController _controller = TextEditingController();
 
+  late final PageController pageController;
+
+  GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     entries = <PasswordWidget>[];
     filteredEntries = <PasswordWidget>[];
+    pageController = PageController(
+      initialPage: selectedTabIndex,
+      keepPage: true,
+    );
   }
 
   void _search(String query) {
@@ -90,24 +99,31 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final homeBody = [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-        child: SizedBox(
-          height: size.height * 0.585,
-          width: double.infinity,
-          child: StreamBuilder(
-            stream: repository.getStream(),
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              if (!snapshot.hasData) return const LinearProgressIndicator();
-              return _buildList(context, snapshot.data?.docs ?? []);
-            },
+    final homeBody = PageView(
+      controller: pageController,
+      onPageChanged: (index) {
+        _bottomNavigationKey.currentState!.setPage(index);
+        setState(() => selectedTabIndex = index);
+      },
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+          child: SizedBox(
+            height: size.height * 0.585,
+            width: double.infinity,
+            child: StreamBuilder(
+              stream: repository.getStream(),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (!snapshot.hasData) return const LinearProgressIndicator();
+                return _buildList(context, snapshot.data?.docs ?? []);
+              },
+            ),
           ),
         ),
-      ),
-      const Generate(generateType: GenerateType.password),
-      const Icon(Icons.admin_panel_settings_outlined),
-    ];
+        const Generate(generateType: GenerateType.password),
+        const Icon(Icons.admin_panel_settings_outlined),
+      ],
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -138,29 +154,35 @@ class _HomePageState extends State<HomePage> {
             setState(() => isSearching = value.isNotEmpty);
           },
         ),
+        automaticallyImplyLeading: false,
       ),
-      body: homeBody[selectedTabIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      body: homeBody,
+      bottomNavigationBar: CurvedNavigationBar(
+        key: _bottomNavigationKey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lock_outline_rounded),
-            label: "Vault",
+          Icon(
+            Icons.lock_outline_rounded,
+            color: Colors.white,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.repeat_outlined),
-            label: "Generate",
+          Icon(
+            Icons.repeat_outlined,
+            color: Colors.white,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: "Settings",
+          Icon(
+            Icons.settings_outlined,
+            color: Colors.white,
           ),
         ],
-        currentIndex: selectedTabIndex,
-        selectedItemColor: darkBlueishColor,
-        unselectedItemColor: Colors.black,
-        onTap: (int item) {
+        color: purpleMaterialColor,
+        buttonBackgroundColor: purpleMaterialColor,
+        backgroundColor: Colors.white,
+        animationCurve: Curves.bounceInOut,
+        animationDuration: const Duration(milliseconds: 200),
+        height: 60,
+        onTap: (int index) {
           setState(() {
-            selectedTabIndex = item;
+            selectedTabIndex = index;
+            pageController.jumpToPage(index);
           });
         },
       ),

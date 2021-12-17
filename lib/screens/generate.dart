@@ -291,7 +291,7 @@ class _GenerateState extends State<Generate> {
                     ),
                     Expanded(
                       child: Slider(
-                        label: '5',
+                        label: length.toString(),
                         value: length.toDouble(),
                         min: 8,
                         max: 50,
