@@ -106,17 +106,51 @@ class _HomePageState extends State<HomePage> {
         setState(() => selectedTabIndex = index);
       },
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-          child: SizedBox(
-            height: size.height * 0.585,
-            width: double.infinity,
-            child: StreamBuilder(
-              stream: repository.getStream(),
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (!snapshot.hasData) return const LinearProgressIndicator();
-                return _buildList(context, snapshot.data?.docs ?? []);
+        Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.black,
+            title: RoundedTextFormField(
+              controller: _controller,
+              style: const TextStyle(
+                fontSize: 18,
+              ),
+              hintText: "Search password",
+              icon: Icons.search_outlined,
+              suffixIcon: isSearching
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.close_outlined,
+                        color: darkBlueishColor,
+                      ),
+                      onPressed: () {
+                        _controller.clear();
+                        setState(() => isSearching = false);
+                      },
+                    )
+                  : null,
+              color: darkBlueishColor,
+              onChanged: (value) {
+                _search(value);
+                setState(() => isSearching = value.isNotEmpty);
               },
+            ),
+            automaticallyImplyLeading: false,
+          ),
+          body: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+            child: SizedBox(
+              height: size.height * 0.585,
+              width: double.infinity,
+              child: StreamBuilder(
+                stream: repository.getStream(),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (!snapshot.hasData) return const LinearProgressIndicator();
+                  return _buildList(context, snapshot.data?.docs ?? []);
+                },
+              ),
             ),
           ),
         ),
@@ -126,36 +160,6 @@ class _HomePageState extends State<HomePage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: RoundedTextFormField(
-          controller: _controller,
-          style: const TextStyle(
-            fontSize: 18,
-          ),
-          hintText: "Search password",
-          icon: Icons.search_rounded,
-          suffixIcon: isSearching
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.close_outlined,
-                    color: darkBlueishColor,
-                  ),
-                  onPressed: () {
-                    _controller.clear();
-                    setState(() => isSearching = false);
-                  },
-                )
-              : null,
-          color: darkBlueishColor,
-          onChanged: (value) {
-            _search(value);
-            setState(() => isSearching = value.isNotEmpty);
-          },
-        ),
-        automaticallyImplyLeading: false,
-      ),
       body: homeBody,
       bottomNavigationBar: CurvedNavigationBar(
         key: _bottomNavigationKey,
