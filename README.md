@@ -1,16 +1,17 @@
-# password_manager
+# Byepass Password Manager
 
-A new Flutter project.
+ByePass is a secure, user-friendly app that manages login credentials with industry-standard encryption. Replaces insecure manual management and includes a password generator.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Free to Use & Open Source
+  The source code is publicly available on GitHub for free inspection and audit.
 
-A few resources to get you started if this is your first Flutter project:
+- Secure
+  All your passwords are encrypted with AES-256 which uses symmetric key encryption and the key is generated using your own master password.
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Easy to use
+  The UI is kept user friendly so that the new user doesn’t feel difficult to interact with the app.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Concrete Functionalities
+  The application contains some additional features such as password / passphrase generator, real-time updates across multiple devices, etc., each having some specific use case.
